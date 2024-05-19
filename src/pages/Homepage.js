@@ -414,7 +414,7 @@ const Homepage = () => {
                             <span className="tb-sub">{item.phone}</span>
                           </DataTableRow>
                           <DataTableRow>
-                            <span style={{ border: "1px solid #dbdfea", padding: "3px 5px", borderRadius: "7px", fontWeight: "bold", color: "#333" }} className="tb-sub">{item.category}</span>
+                            <span className="badge bg-outline-primary">{item.category}</span>
                           </DataTableRow>
                           <DataTableRow>
                             <span style={{ border: "1px solid #dbdfea", padding: "3px 5px", borderRadius: "7px", fontWeight: "bold", color: "#333" }} className="tb-sub">{item.ticket}</span>
