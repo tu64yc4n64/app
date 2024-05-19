@@ -1,6 +1,6 @@
 {
   "name": "DashliteReact-Demo1",
-  "homepage": "https://react.dashlite.net/demo1/",
+  "homepage": "https://app-ten-murex.vercel.app/",
   "version": "1.7.1",
   "private": true,
   "dependencies": {
