@@ -192,7 +192,7 @@ $menu-main-sub-toggle-icon-rtl: $ni-chevron-left !default;
             color: currentColor;
             transition: color .4s, background-color .4s;
         }
-        .nk-menu-link:hover &, .nk-menu-item.active > .nk-menu-link & , .nk-menu-item.current-menu > .nk-menu-link & {
+        .nk-menu-link:hover &, .nk-menu-item.current-menu > .nk-menu-link & {
             color: $menu-link-color-hover;
             @if($menu_dark_theme_option==true) {
                 .is-theme &{
