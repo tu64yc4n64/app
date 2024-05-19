@@ -414,10 +414,10 @@ const Homepage = () => {
                             <span className="tb-sub">{item.phone}</span>
                           </DataTableRow>
                           <DataTableRow>
-                            <span className="badge bg-outline-primary">{item.category}</span>
+                            <span className="badge bg-outline-secondary">{item.category}</span>
                           </DataTableRow>
                           <DataTableRow>
-                            <span style={{ border: "1px solid #dbdfea", padding: "3px 5px", borderRadius: "7px", fontWeight: "bold", color: "#333" }} className="tb-sub">{item.ticket}</span>
+                            <span className="badge bg-outline-secondary">{item.ticket}</span>
                           </DataTableRow>
                           <DataTableRow>
                             <span className="tb-sub">{item.city}</span>
@@ -427,7 +427,7 @@ const Homepage = () => {
                             <span style={{ paddingLeft: "5px" }} className="tb-sub">{item.representative.name}</span>
                           </DataTableRow>
                           <DataTableRow>
-                            <span style={{ border: "1px solid #dbdfea", padding: "3px 5px", borderRadius: "7px", fontWeight: "bold", color: "#333" }} className="tb-sub">{item.status}</span>
+                            <span className="badge bg-outline-secondary">{item.status}</span>
                           </DataTableRow>
                           <DataTableRow className="nk-tb-col-tools">
                             <ul className="nk-tb-actions gx-1 my-n1">
