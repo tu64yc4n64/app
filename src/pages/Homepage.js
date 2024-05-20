@@ -6,7 +6,7 @@ import SimpleBar from "simplebar-react";
 import { useForm } from "react-hook-form";
 import { RSelect } from "../components/Component";
 import { productData, categoryOptions } from "./pre-built/products/ProductData";
-import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle } from "reactstrap";
+import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup, } from "reactstrap";
 import { Modal, ModalBody } from "reactstrap";
 import {
   Block,
@@ -24,12 +24,28 @@ import {
   DataTableItem,
   Row,
   PaginationComponent,
+  DataTable
 
 } from "../components/Component";
 
 const Homepage = () => {
   const [data, setData] = useState(productData);
   const [sm, updateSm] = useState(false);
+  const [tablesm, updateTableSm] = useState(false);
+  const [itemPerPage, setItemPerPage] = useState(10);
+  const [sort, setSortState] = useState("");
+  const [onSearch, setonSearch] = useState(true);
+
+  const sortFunc = (params) => {
+    let defaultData = data;
+    if (params === "asc") {
+      let sortedData = defaultData.sort((a, b) => a.name.localeCompare(b.name));
+      setData([...sortedData]);
+    } else if (params === "dsc") {
+      let sortedData = defaultData.sort((a, b) => b.name.localeCompare(a.name));
+      setData([...sortedData]);
+    }
+  };
   const [formData, setFormData] = useState({
     name: "",
     img: null,
@@ -49,7 +65,7 @@ const Homepage = () => {
   });
   const [onSearchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemPerPage] = useState(7);
+
   const [files, setFiles] = useState([]);
 
   //scroll off when sidebar shows
@@ -61,7 +77,7 @@ const Homepage = () => {
   useEffect(() => {
     if (onSearchText !== "") {
       const filteredObject = productData.filter((item) => {
-        return item.sku.toLowerCase().includes(onSearchText.toLowerCase());
+        return item.name.toLowerCase().includes(onSearchText.toLowerCase());
       });
       setData([...filteredObject]);
     } else {
@@ -202,12 +218,14 @@ const Homepage = () => {
   };
 
   // toggle function to view product details
+
   const toggle = (type) => {
     setView({
       edit: type === "edit" ? true : false,
       add: type === "add" ? true : false,
       details: type === "details" ? true : false,
     });
+    setonSearch(!onSearch)
   };
 
   // handles ondrop function of dropzone
@@ -239,17 +257,7 @@ const Homepage = () => {
             <BlockHeadContent>
               <BlockTitle>Kişiler</BlockTitle>
               <div className="nk-block-des text-soft"><p>Toplam 450 kişi</p></div>
-              <div className="form-control-wrap" style={{ marginTop: "15px" }}>
-                <div className="form-icon form-icon-left">
-                  <Icon name="search"></Icon>
-                </div>
-                <input
-                  type="text"
-                  className="form-round form-control"
-                  id="default-03"
-                  placeholder="Kişilerder ara..."
-                />
-              </div>
+
             </BlockHeadContent>
             <BlockHeadContent>
               <div className="toggle-wrap nk-block-tools-toggle">
@@ -295,193 +303,200 @@ const Homepage = () => {
           </BlockBetween>
         </BlockHead>
         <Block>
-          <Card className="card-bordered">
-            <div className="card-inner-group">
-              <div className="card-inner p-0">
-                <DataTableBody>
-                  <DataTableHead>
-                    <DataTableRow className="nk-tb-col-check">
-                      <div className="custom-control custom-control-sm custom-checkbox notext">
-                        <input
-                          type="checkbox"
-                          className="custom-control-input"
-                          id="uid_1"
-                          onChange={(e) => selectorCheck(e)}
-                        />
-                        <label className="custom-control-label" htmlFor="uid_1"></label>
-                      </div>
-                    </DataTableRow>
-                    <DataTableRow size="sm">
-                      <span>Müşteri</span>
-                    </DataTableRow>
-                    <DataTableRow>
-                      <span>Telefon</span>
-                    </DataTableRow>
-                    <DataTableRow>
-                      <span>Kategori</span>
-                    </DataTableRow>
-                    <DataTableRow>
-                      <span>Etiket</span>
-                    </DataTableRow>
-                    <DataTableRow size="md">
-                      <span>Şehir</span>
-                    </DataTableRow>
-                    <DataTableRow size="md">
-                      <span>Temsilci</span>
-                    </DataTableRow>
-                    <DataTableRow size="md">
-                      <span>Durum</span>
-                    </DataTableRow>
+          <DataTable className="card-stretch">
+            <Card className="card-bordered">
+              <div className="card-inner position-relative card-tools-toggle">
+                <div className="card-title-group">
 
-                    <DataTableRow className="nk-tb-col-tools">
-                      <ul className="nk-tb-actions gx-1 my-n1">
-                        <li className="me-n1">
-                          <UncontrolledDropdown>
-                            <DropdownToggle
-                              tag="a"
-                              href="#toggle"
-                              onClick={(ev) => ev.preventDefault()}
-                              className="dropdown-toggle btn btn-icon btn-trigger"
-                            >
-                              <Icon name="more-h"></Icon>
-                            </DropdownToggle>
-                            <DropdownMenu end>
-                              <ul className="link-list-opt no-bdr">
-                                <li>
-                                  <DropdownItem tag="a" href="#edit" onClick={(ev) => ev.preventDefault()}>
-                                    <Icon name="edit"></Icon>
-                                    <span>Edit Selected</span>
-                                  </DropdownItem>
-                                </li>
-                                <li>
-                                  <DropdownItem
-                                    tag="a"
-                                    href="#remove"
-                                    onClick={(ev) => {
-                                      ev.preventDefault();
-                                      selectorDeleteProduct();
-                                    }}
-                                  >
-                                    <Icon name="trash"></Icon>
-                                    <span>Remove Selected</span>
-                                  </DropdownItem>
-                                </li>
-                                <li>
-                                  <DropdownItem tag="a" href="#stock" onClick={(ev) => ev.preventDefault()}>
-                                    <Icon name="bar-c"></Icon>
-                                    <span>Update Stock</span>
-                                  </DropdownItem>
-                                </li>
-                                <li>
-                                  <DropdownItem tag="a" href="#price" onClick={(ev) => ev.preventDefault()}>
-                                    <Icon name="invest"></Icon>
-                                    <span>Update Price</span>
-                                  </DropdownItem>
-                                </li>
-                              </ul>
-                            </DropdownMenu>
-                          </UncontrolledDropdown>
-                        </li>
-                      </ul>
-                    </DataTableRow>
-                  </DataTableHead>
-                  {currentItems.length > 0
-                    ? currentItems.map((item) => {
-
-                      return (
-                        <DataTableItem key={item.id}>
-                          <DataTableRow className="nk-tb-col-check">
-                            <div className="custom-control custom-control-sm custom-checkbox notext">
-                              <input
-                                type="checkbox"
-                                className="custom-control-input"
-                                defaultChecked={item.check}
-                                id={item.id + "uid1"}
-                                key={Math.random()}
-                                onChange={(e) => onSelectChange(e, item.id)}
-                              />
-                              <label className="custom-control-label" htmlFor={item.id + "uid1"}></label>
-                            </div>
-                          </DataTableRow>
-                          <DataTableRow size="sm">
-                            <span className="tb-product" style={{ flexDirection: "column", display: "flex", alignItems: "start" }}>
-
-                              <span className="title">{item.name}</span>
-                              <span>{item.email}</span>
-                            </span>
-                          </DataTableRow>
-                          <DataTableRow>
-                            <span className="tb-sub">{item.phone}</span>
-                          </DataTableRow>
-                          <DataTableRow>
-                            <span className="badge bg-outline-secondary">{item.category}</span>
-                          </DataTableRow>
-                          <DataTableRow>
-                            <span className="badge bg-outline-secondary">{item.ticket}</span>
-                          </DataTableRow>
-                          <DataTableRow>
-                            <span className="tb-sub">{item.city}</span>
-                          </DataTableRow>
-                          <DataTableRow>
-                            <img style={{ borderRadius: "50%", width: "25px" }} src={ProductH} alt="product" className="thumb" />
-                            <span style={{ paddingLeft: "5px" }} className="tb-sub">{item.representative.name}</span>
-                          </DataTableRow>
-                          <DataTableRow>
-                            <span className="badge bg-outline-secondary">{item.status}</span>
-                          </DataTableRow>
-                          <DataTableRow className="nk-tb-col-tools">
-                            <ul className="nk-tb-actions gx-1 my-n1">
-                              <li className="me-n1">
+                  <div className="card-tools me-n1">
+                    <ul className="btn-toolbar gx-1">
+                      <li>
+                        <a
+                          href="#search"
+                          onClick={(ev) => {
+                            ev.preventDefault();
+                            toggle();
+                          }}
+                          className="btn btn-icon search-toggle toggle-search"
+                        >
+                          <Icon name="search"></Icon>
+                        </a>
+                      </li>
+                      <li className="btn-toolbar-sep"></li>
+                      <li>
+                        <div className="toggle-wrap">
+                          <Button
+                            className={`btn-icon btn-trigger toggle ${tablesm ? "active" : ""}`}
+                            onClick={() => updateTableSm(true)}
+                          >
+                            <Icon name="menu-right"></Icon>
+                          </Button>
+                          <div className={`toggle-content ${tablesm ? "content-active" : ""}`}>
+                            <ul className="btn-toolbar gx-1">
+                              <li className="toggle-close">
+                                <Button className="btn-icon btn-trigger toggle" onClick={() => updateTableSm(false)}>
+                                  <Icon name="arrow-left"></Icon>
+                                </Button>
+                              </li>
+                              <li>
                                 <UncontrolledDropdown>
-                                  <DropdownToggle
-                                    tag="a"
-                                    href="#more"
-                                    onClick={(ev) => ev.preventDefault()}
-                                    className="dropdown-toggle btn btn-icon btn-trigger"
-                                  >
-                                    <Icon name="more-h"></Icon>
+                                  <DropdownToggle tag="a" className="btn btn-trigger btn-icon dropdown-toggle">
+                                    <div className="dot dot-primary"></div>
+                                    <Icon name="filter-alt"></Icon>
                                   </DropdownToggle>
-                                  <DropdownMenu end>
-                                    <ul className="link-list-opt no-bdr">
-                                      <li>
-                                        <DropdownItem
-                                          tag="a"
-                                          href="#edit"
+                                  <DropdownMenu
+                                    end
+                                    className="filter-wg dropdown-menu-xl"
+                                    style={{ overflow: "visible" }}
+                                  >
+                                    <div className="dropdown-head">
+                                      <span className="sub-title dropdown-title">Filter Users</span>
+                                      <div className="dropdown">
+                                        <a
+                                          href="#more"
                                           onClick={(ev) => {
                                             ev.preventDefault();
-                                            onEditClick(item.id);
-                                            toggle("edit");
+                                          }}
+                                          className="btn btn-sm btn-icon"
+                                        >
+                                          <Icon name="more-h"></Icon>
+                                        </a>
+                                      </div>
+                                    </div>
+                                    <div className="dropdown-body dropdown-body-rg">
+                                      <Row className="gx-6 gy-3">
+                                        <Col size="6">
+                                          <div className="custom-control custom-control-sm custom-checkbox">
+                                            <input
+                                              type="checkbox"
+                                              className="custom-control-input"
+                                              id="hasBalance"
+                                            />
+                                            <label className="custom-control-label" htmlFor="hasBalance">
+                                              {" "}
+                                              Have Balance
+                                            </label>
+                                          </div>
+                                        </Col>
+                                        <Col size="6">
+                                          <div className="custom-control custom-control-sm custom-checkbox">
+                                            <input
+                                              type="checkbox"
+                                              className="custom-control-input"
+                                              id="hasKYC"
+                                            />
+                                            <label className="custom-control-label" htmlFor="hasKYC">
+                                              {" "}
+                                              KYC Verified
+                                            </label>
+                                          </div>
+                                        </Col>
+                                        <Col size="6">
+                                          <div className="form-group">
+                                            <label className="overline-title overline-title-alt">Role</label>
+                                            <RSelect placeholder="Any Role" />
+                                          </div>
+                                        </Col>
+                                        <Col size="6">
+                                          <div className="form-group">
+                                            <label className="overline-title overline-title-alt">Status</label>
+                                            <RSelect placeholder="Any Status" />
+                                          </div>
+                                        </Col>
+                                        <Col size="12">
+                                          <div className="form-group">
+                                            <button type="button" className="btn btn-secondary">
+                                              Filter
+                                            </button>
+                                          </div>
+                                        </Col>
+                                      </Row>
+                                    </div>
+                                    <div className="dropdown-foot between">
+                                      <a
+                                        href="#reset"
+                                        onClick={(ev) => {
+                                          ev.preventDefault();
+                                        }}
+                                        className="clickable"
+                                      >
+                                        Reset Filter
+                                      </a>
+                                      <a
+                                        href="#save"
+                                        onClick={(ev) => {
+                                          ev.preventDefault();
+                                        }}
+                                      >
+                                        Save Filter
+                                      </a>
+                                    </div>
+                                  </DropdownMenu>
+                                </UncontrolledDropdown>
+                              </li>
+                              <li>
+                                <UncontrolledDropdown>
+                                  <DropdownToggle color="tranparent" className="btn btn-trigger btn-icon dropdown-toggle">
+                                    <Icon name="setting"></Icon>
+                                  </DropdownToggle>
+                                  <DropdownMenu end className="dropdown-menu-xs">
+                                    <ul className="link-check">
+                                      <li>
+                                        <span>Show</span>
+                                      </li>
+                                      <li className={itemPerPage === 10 ? "active" : ""}>
+                                        <DropdownItem
+                                          tag="a"
+                                          href="#dropdownitem"
+                                          onClick={(ev) => {
+                                            ev.preventDefault();
+                                            setItemPerPage(10);
                                           }}
                                         >
-                                          <Icon name="edit"></Icon>
-                                          <span>Edit Product</span>
+                                          10
                                         </DropdownItem>
                                       </li>
-                                      <li>
+                                      <li className={itemPerPage === 15 ? "active" : ""}>
                                         <DropdownItem
                                           tag="a"
-                                          href="#view"
+                                          href="#dropdownitem"
                                           onClick={(ev) => {
                                             ev.preventDefault();
-                                            onEditClick(item.id);
-                                            toggle("details");
+                                            setItemPerPage(15);
                                           }}
                                         >
-                                          <Icon name="eye"></Icon>
-                                          <span>View Product</span>
+                                          15
                                         </DropdownItem>
                                       </li>
+                                    </ul>
+                                    <ul className="link-check">
                                       <li>
+                                        <span>Order</span>
+                                      </li>
+                                      <li className={sort === "dsc" ? "active" : ""}>
                                         <DropdownItem
                                           tag="a"
-                                          href="#remove"
+                                          href="#dropdownitem"
                                           onClick={(ev) => {
                                             ev.preventDefault();
-                                            deleteProduct(item.id);
+                                            setSortState("dsc");
+                                            sortFunc("dsc");
                                           }}
                                         >
-                                          <Icon name="trash"></Icon>
-                                          <span>Remove Product</span>
+                                          DESC
+                                        </DropdownItem>
+                                      </li>
+                                      <li className={sort === "asc" ? "active" : ""}>
+                                        <DropdownItem
+                                          tag="a"
+                                          href="#dropdownitem"
+                                          onClick={(ev) => {
+                                            ev.preventDefault();
+                                            setSortState("asc");
+                                            sortFunc("asc");
+                                          }}
+                                        >
+                                          ASC
                                         </DropdownItem>
                                       </li>
                                     </ul>
@@ -489,29 +504,255 @@ const Homepage = () => {
                                 </UncontrolledDropdown>
                               </li>
                             </ul>
-                          </DataTableRow>
-                        </DataTableItem>
-                      );
-                    })
-                    : null}
-                </DataTableBody>
-                <div className="card-inner">
-                  {data.length > 0 ? (
-                    <PaginationComponent
-                      itemPerPage={itemPerPage}
-                      totalItems={data.length}
-                      paginate={paginate}
-                      currentPage={currentPage}
-                    />
-                  ) : (
-                    <div className="text-center">
-                      <span className="text-silent">No products found</span>
+                          </div>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div className={`card-search search-wrap ${!onSearch && "active"}`}>
+                  <div className="card-body">
+                    <div className="search-content">
+                      <Button
+                        className="search-back btn-icon toggle-search active"
+                        onClick={() => {
+                          setSearchText("");
+                          toggle();
+                        }}
+                      >
+                        <Icon name="arrow-left"></Icon>
+                      </Button>
+                      <input
+                        type="text"
+                        className="border-transparent form-focus-none form-control"
+                        placeholder="Search by user or email"
+                        value={onSearchText}
+                        onChange={(e) => onFilterChange(e)}
+                      />
+                      <Button className="search-submit btn-icon">
+                        <Icon name="search"></Icon>
+                      </Button>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
+              <div className="card-inner-group">
+                <div className="card-inner p-0">
+                  <DataTableBody>
+                    <DataTableHead>
+                      <DataTableRow className="nk-tb-col-check">
+                        <div className="custom-control custom-control-sm custom-checkbox notext">
+                          <input
+                            type="checkbox"
+                            className="custom-control-input"
+                            id="uid_1"
+                            onChange={(e) => selectorCheck(e)}
+                          />
+                          <label className="custom-control-label" htmlFor="uid_1"></label>
+                        </div>
+                      </DataTableRow>
+                      <DataTableRow >
+                        <span>Müşteri</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>Telefon</span>
+                      </DataTableRow>
+                      <DataTableRow>
+                        <span>Kategori</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>Etiket</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>Şehir</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>Temsilci</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>Durum</span>
+                      </DataTableRow>
+
+                      <DataTableRow className="nk-tb-col-tools">
+                        <ul className="nk-tb-actions gx-1 my-n1">
+                          <li className="me-n1">
+                            <UncontrolledDropdown>
+                              <DropdownToggle
+                                tag="a"
+                                href="#toggle"
+                                onClick={(ev) => ev.preventDefault()}
+                                className="dropdown-toggle btn btn-icon btn-trigger"
+                              >
+                                <Icon name="more-h"></Icon>
+                              </DropdownToggle>
+                              <DropdownMenu end>
+                                <ul className="link-list-opt no-bdr">
+                                  <li>
+                                    <DropdownItem tag="a" href="#edit" onClick={(ev) => ev.preventDefault()}>
+                                      <Icon name="edit"></Icon>
+                                      <span>Edit Selected</span>
+                                    </DropdownItem>
+                                  </li>
+                                  <li>
+                                    <DropdownItem
+                                      tag="a"
+                                      href="#remove"
+                                      onClick={(ev) => {
+                                        ev.preventDefault();
+                                        selectorDeleteProduct();
+                                      }}
+                                    >
+                                      <Icon name="trash"></Icon>
+                                      <span>Remove Selected</span>
+                                    </DropdownItem>
+                                  </li>
+                                  <li>
+                                    <DropdownItem tag="a" href="#stock" onClick={(ev) => ev.preventDefault()}>
+                                      <Icon name="bar-c"></Icon>
+                                      <span>Update Stock</span>
+                                    </DropdownItem>
+                                  </li>
+                                  <li>
+                                    <DropdownItem tag="a" href="#price" onClick={(ev) => ev.preventDefault()}>
+                                      <Icon name="invest"></Icon>
+                                      <span>Update Price</span>
+                                    </DropdownItem>
+                                  </li>
+                                </ul>
+                              </DropdownMenu>
+                            </UncontrolledDropdown>
+                          </li>
+                        </ul>
+                      </DataTableRow>
+                    </DataTableHead>
+                    {currentItems.length > 0
+                      ? currentItems.map((item) => {
+
+                        return (
+                          <DataTableItem key={item.id}>
+                            <DataTableRow className="nk-tb-col-check">
+                              <div className="custom-control custom-control-sm custom-checkbox notext">
+                                <input
+                                  type="checkbox"
+                                  className="custom-control-input"
+                                  defaultChecked={item.check}
+                                  id={item.id + "uid1"}
+                                  key={Math.random()}
+                                  onChange={(e) => onSelectChange(e, item.id)}
+                                />
+                                <label className="custom-control-label" htmlFor={item.id + "uid1"}></label>
+                              </div>
+                            </DataTableRow>
+                            <DataTableRow>
+                              <span className="tb-product" style={{ flexDirection: "column", display: "flex", alignItems: "start" }}>
+
+                                <span className="title">{item.name}</span>
+                                <span>{item.email}</span>
+                              </span>
+                            </DataTableRow>
+                            <DataTableRow size="md">
+                              <span className="tb-sub">{item.phone}</span>
+                            </DataTableRow>
+                            <DataTableRow>
+                              <span className="badge bg-outline-secondary">{item.category}</span>
+                            </DataTableRow>
+                            <DataTableRow size="md">
+                              <span className="badge bg-outline-secondary">{item.ticket}</span>
+                            </DataTableRow>
+                            <DataTableRow size="md">
+                              <span className="tb-sub">{item.city}</span>
+                            </DataTableRow>
+                            <DataTableRow size="md">
+                              <img style={{ borderRadius: "50%", width: "25px" }} src={ProductH} alt="product" className="thumb" />
+                              <span style={{ paddingLeft: "5px" }} className="tb-sub">{item.representative.name}</span>
+                            </DataTableRow>
+                            <DataTableRow size="md">
+                              <span className="badge bg-outline-secondary">{item.status}</span>
+                            </DataTableRow>
+                            <DataTableRow className="nk-tb-col-tools">
+                              <ul className="nk-tb-actions gx-1 my-n1">
+                                <li className="me-n1">
+                                  <UncontrolledDropdown>
+                                    <DropdownToggle
+                                      tag="a"
+                                      href="#more"
+                                      onClick={(ev) => ev.preventDefault()}
+                                      className="dropdown-toggle btn btn-icon btn-trigger"
+                                    >
+                                      <Icon name="more-h"></Icon>
+                                    </DropdownToggle>
+                                    <DropdownMenu end>
+                                      <ul className="link-list-opt no-bdr">
+                                        <li>
+                                          <DropdownItem
+                                            tag="a"
+                                            href="#edit"
+                                            onClick={(ev) => {
+                                              ev.preventDefault();
+                                              onEditClick(item.id);
+                                              toggle("edit");
+                                            }}
+                                          >
+                                            <Icon name="edit"></Icon>
+                                            <span>Edit Product</span>
+                                          </DropdownItem>
+                                        </li>
+                                        <li>
+                                          <DropdownItem
+                                            tag="a"
+                                            href="#view"
+                                            onClick={(ev) => {
+                                              ev.preventDefault();
+                                              onEditClick(item.id);
+                                              toggle("details");
+                                            }}
+                                          >
+                                            <Icon name="eye"></Icon>
+                                            <span>View Product</span>
+                                          </DropdownItem>
+                                        </li>
+                                        <li>
+                                          <DropdownItem
+                                            tag="a"
+                                            href="#remove"
+                                            onClick={(ev) => {
+                                              ev.preventDefault();
+                                              deleteProduct(item.id);
+                                            }}
+                                          >
+                                            <Icon name="trash"></Icon>
+                                            <span>Remove Product</span>
+                                          </DropdownItem>
+                                        </li>
+                                      </ul>
+                                    </DropdownMenu>
+                                  </UncontrolledDropdown>
+                                </li>
+                              </ul>
+                            </DataTableRow>
+                          </DataTableItem>
+                        );
+                      })
+                      : null}
+                  </DataTableBody>
+                  <div className="card-inner">
+                    {data.length > 0 ? (
+                      <PaginationComponent
+                        itemPerPage={itemPerPage}
+                        totalItems={data.length}
+                        paginate={paginate}
+                        currentPage={currentPage}
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <span className="text-silent">Herhangi bir müşteri bulunamadı</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </DataTable>
         </Block>
         <Modal className="modal-dialog-centered" size="lg">
 
@@ -536,7 +777,58 @@ const Homepage = () => {
           <Block>
             <form onSubmit={handleSubmit(onFormSubmit)}>
               <Row className="g-3">
-                <Col size="12">
+                <Col size="6">
+                  <div className="form-group">
+
+                    <div className="form-control-wrap">
+                      <input
+                        type="text"
+                        className="form-control"
+                        {...register('name', {
+                          required: "Lütfen boş bıraklın alanları doldurunuz.",
+                        })}
+                        placeholder="Ad"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="6">
+                  <div className="form-group">
+
+                    <div className="form-control-wrap">
+                      <input
+                        type="text"
+                        className="form-control"
+                        {...register('name', {
+                          required: "Lütfen boş bıraklın alanları doldurunuz.",
+                        })}
+                        placeholder="Soyadı"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="6">
+                  <div className="form-group">
+
+                    <div className="form-control-wrap">
+                      <input
+                        type="text"
+                        className="form-control"
+                        {...register('name', {
+                          required: "Lütfen boş bıraklın alanları doldurunuz.",
+                        })}
+                        placeholder="Ünvan"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="6">
                   <div className="form-group">
 
                     <div className="form-control-wrap">
@@ -565,6 +857,57 @@ const Homepage = () => {
                           required: "Lütfen boş bıraklın alanları doldurunuz.",
                         })}
                         placeholder="Email"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="6">
+                  <div className="form-group">
+
+                    <div className="form-control-wrap">
+                      <input
+                        type="text"
+                        className="form-control"
+                        {...register('name', {
+                          required: "Lütfen boş bıraklın alanları doldurunuz.",
+                        })}
+                        placeholder="Telefon No 1"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="6">
+                  <div className="form-group">
+
+                    <div className="form-control-wrap">
+                      <input
+                        type="text"
+                        className="form-control"
+                        {...register('name', {
+                          required: "Lütfen boş bıraklın alanları doldurunuz.",
+                        })}
+                        placeholder="Telefon No 2"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="6">
+                  <div className="form-group">
+
+                    <div className="form-control-wrap">
+                      <input
+                        type="text"
+                        className="form-control"
+                        {...register('name', {
+                          required: "Lütfen boş bıraklın alanları doldurunuz.",
+                        })}
+                        placeholder="Doğum Tarihi"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                       {errors.name && <span className="invalid">{errors.name.message}</span>}
@@ -727,10 +1070,18 @@ const Homepage = () => {
 
 
                 <Col size="12">
-                  <Button color="primary" type="submit">
-                    <Icon className="plus"></Icon>
-                    <span>Add Product</span>
-                  </Button>
+                  <div className="flex justify-end">
+                    <ButtonGroup>
+                      <Button type="button" className="btn btn-outline-primary">
+
+                        <span>Vazgeç</span>
+                      </Button>
+                      <Button color="primary" type="submit">
+
+                        <span>Kaydet</span>
+                      </Button>
+                    </ButtonGroup>
+                  </div>
                 </Col>
               </Row>
             </form>
