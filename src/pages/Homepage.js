@@ -277,13 +277,13 @@ const Homepage = () => {
 
                     <li className="nk-block-tools-opt">
                       <Button
-                        className="toggle btn-icon d-md-none"
+                        className="toggle btn btn-primary d-md-none"
                         color="primary"
                         onClick={() => {
                           toggle("add");
                         }}
                       >
-                        <Icon name="plus"></Icon>
+                        Yeni Kişi Ekle
                       </Button>
                       <Button
                         className="toggle d-none d-md-inline-flex"
@@ -1072,7 +1072,7 @@ const Homepage = () => {
                 <Col size="12">
                   <div className="flex justify-end">
                     <ButtonGroup>
-                      <Button type="button" className="btn btn-outline-primary">
+                      <Button type="button" onClick={() => setView({ ...view, add: false })} className="btn btn-outline-primary">
 
                         <span>Vazgeç</span>
                       </Button>
