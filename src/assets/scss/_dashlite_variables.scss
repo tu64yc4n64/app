@@ -3,6 +3,7 @@
 ////////////////////////////////////////////////////////
 
 @use 'sass:math';
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 $font-url: '../../../fonts';
 /////////    COLORS    ///////////
 //////////////////////////////////////
@@ -163,7 +164,7 @@ $stretch-gap-x:          (4px + math.div($gutter-width, 2));
 
 $base-font-family: 		Inter, sans-serif;
 $base-line-height:		1.65;
-$alt-font-family: 		Nunito, sans-serif;
+$alt-font-family: 		Inter, sans-serif;
 
 $lg-base:				$base-line-height;
 $lh-rg:					$base-line-height;
@@ -419,7 +420,7 @@ $textarea-min-height-lg:                208px;
 
 $card-spacer-y:                     .75rem;
 $card-spacer-x:                     1.25rem;
-$card-spacer-sm-x:                  1rem;
+$card-spacer-sm-x:                  1.5rem;
 $card-spacer-large:                 2.5rem;
 
 $card-border-width:                 0;

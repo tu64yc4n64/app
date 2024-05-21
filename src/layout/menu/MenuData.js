@@ -9,7 +9,14 @@ const menu = [
   },
   {
     icon: "users",
-    text: "Müşteriler",
+    text: "Kişiler",
+    link: "/kisiler",
+    active: false,
+
+  },
+  {
+    icon: "users",
+    text: "Firmalar",
     link: "/",
     active: false,
 

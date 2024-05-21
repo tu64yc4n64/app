@@ -145,7 +145,7 @@ const Router = () => {
 
 
         <Route element={<UserContextProvider />} >
-          <Route path="user-list-regular" element={<UserListRegular />}></Route>
+          <Route path="kisiler" element={<UserListRegular />}></Route>
           <Route path="user-list-compact" element={<UserListCompact />}></Route>
           <Route path="user-contact-card" element={<UserContactCard />}></Route>
           <Route path="user-details-regular/:userId" element={<UserDetails />}></Route>

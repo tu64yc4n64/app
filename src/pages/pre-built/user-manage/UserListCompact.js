@@ -652,154 +652,151 @@ const UserListCompact = () => {
             {/*Head*/}
             {currentItems.length > 0
               ? currentItems.map((item) => {
-                  return (
-                    <DataTableItem key={item.id}>
-                      <DataTableRow className="nk-tb-col-check">
-                        <div className="custom-control custom-control-sm custom-checkbox notext">
-                          <input
-                            type="checkbox"
-                            className="custom-control-input"
-                            defaultChecked={item.checked}
-                            id={item.id + "uid1"}
-                            key={Math.random()}
-                            onChange={(e) => onSelectChange(e, item.id)}
-                          />
-                          <label className="custom-control-label" htmlFor={item.id + "uid1"}></label>
-                        </div>
-                      </DataTableRow>
-                      <DataTableRow>
-                        <Link to={`${process.env.PUBLIC_URL}/user-details-regular/${item.id}`}>
-                          <div className="user-card">
-                            <UserAvatar
-                              theme={item.avatarBg}
-                              className="xs"
-                              text={findUpper(item.name)}
-                              image={item.image}
-                            ></UserAvatar>
-                            <div className="user-info">
-                              <span className="tb-lead">{item.name} </span>
-                            </div>
+                return (
+                  <DataTableItem key={item.id}>
+                    <DataTableRow className="nk-tb-col-check">
+                      <div className="custom-control custom-control-sm custom-checkbox notext">
+                        <input
+                          type="checkbox"
+                          className="custom-control-input"
+                          defaultChecked={item.checked}
+                          id={item.id + "uid1"}
+                          key={Math.random()}
+                          onChange={(e) => onSelectChange(e, item.id)}
+                        />
+                        <label className="custom-control-label" htmlFor={item.id + "uid1"}></label>
+                      </div>
+                    </DataTableRow>
+                    <DataTableRow>
+                      <Link to={`${process.env.PUBLIC_URL}/user-details-regular/${item.id}`}>
+                        <div className="user-card">
+                          <UserAvatar
+                            theme={item.avatarBg}
+                            className="xs"
+                            text={findUpper(item.name)}
+                            image={item.image}
+                          ></UserAvatar>
+                          <div className="user-info">
+                            <span className="tb-lead">{item.name} </span>
                           </div>
-                        </Link>
-                      </DataTableRow>
-                      <DataTableRow size="md">
-                        <span>{item.role}</span>
-                      </DataTableRow>
-                      <DataTableRow size="sm">
-                        <span>{item.email}</span>
-                      </DataTableRow>
-                      <DataTableRow size="md">
-                        <span>{item.phone}</span>
-                      </DataTableRow>
-                      <DataTableRow size="lg">
-                        <span>{item.country}</span>
-                      </DataTableRow>
-                      <DataTableRow size="lg">
-                        <ul className="list-status">
-                          <li>
-                            <Icon
-                              className={`text-${
-                                item.emailStatus === "success"
-                                  ? "success"
-                                  : item.emailStatus === "pending"
+                        </div>
+                      </Link>
+                    </DataTableRow>
+                    <DataTableRow size="md">
+                      <span>{item.role}</span>
+                    </DataTableRow>
+                    <DataTableRow size="sm">
+                      <span>{item.email}</span>
+                    </DataTableRow>
+                    <DataTableRow size="md">
+                      <span>{item.phone}</span>
+                    </DataTableRow>
+                    <DataTableRow size="lg">
+                      <span>{item.country}</span>
+                    </DataTableRow>
+                    <DataTableRow size="lg">
+                      <ul className="list-status">
+                        <li>
+                          <Icon
+                            className={`text-${item.emailStatus === "success"
+                                ? "success"
+                                : item.emailStatus === "pending"
                                   ? "info"
                                   : "secondary"
                               }`}
-                              name={`${
-                                item.emailStatus === "success"
-                                  ? "check-circle"
-                                  : item.emailStatus === "alert"
+                            name={`${item.emailStatus === "success"
+                                ? "check-circle"
+                                : item.emailStatus === "alert"
                                   ? "alert-circle"
                                   : "alarm-alt"
                               }`}
-                            ></Icon>{" "}
-                            <span>Email</span>
-                          </li>
-                        </ul>
-                      </DataTableRow>
-                      <DataTableRow size="lg">
-                        <span>{item.lastLogin}</span>
-                      </DataTableRow>
-                      <DataTableRow>
-                        <span
-                          className={`tb-status text-${
-                            item.status === "Active" ? "success" : item.status === "Pending" ? "warning" : "danger"
+                          ></Icon>{" "}
+                          <span>Email</span>
+                        </li>
+                      </ul>
+                    </DataTableRow>
+                    <DataTableRow size="lg">
+                      <span>{item.lastLogin}</span>
+                    </DataTableRow>
+                    <DataTableRow>
+                      <span
+                        className={`tb-status text-${item.status === "Active" ? "success" : item.status === "Pending" ? "warning" : "danger"
                           }`}
-                        >
-                          {item.status}
-                        </span>
-                      </DataTableRow>
-                      <DataTableRow className="nk-tb-col-tools">
-                        <ul className="nk-tb-actions gx-1">
-                          <li className="nk-tb-action-hidden" onClick={() => onEditClick(item.id)}>
-                            <TooltipComponent
-                              tag="a"
-                              containerClassName="btn btn-trigger btn-icon"
-                              id={"edit" + item.id}
-                              icon="edit-alt-fill"
-                              direction="top"
-                              text="Edit"
-                            />
-                          </li>
-                          {item.status !== "Suspend" && (
-                            <React.Fragment>
-                              <li className="nk-tb-action-hidden" onClick={() => suspendUser(item.id)}>
-                                <TooltipComponent
-                                  tag="a"
-                                  containerClassName="btn btn-trigger btn-icon"
-                                  id={"suspend" + item.id}
-                                  icon="user-cross-fill"
-                                  direction="top"
-                                  text="Suspend"
-                                />
-                              </li>
-                            </React.Fragment>
-                          )}
-                          <li>
-                            <UncontrolledDropdown>
-                              <DropdownToggle tag="a" className="dropdown-toggle btn btn-icon btn-trigger">
-                                <Icon name="more-h"></Icon>
-                              </DropdownToggle>
-                              <DropdownMenu end>
-                                <ul className="link-list-opt no-bdr">
-                                  <li onClick={() => onEditClick(item.id)}>
-                                    <DropdownItem
-                                      tag="a"
-                                      href="#edit"
-                                      onClick={(ev) => {
-                                        ev.preventDefault();
-                                      }}
-                                    >
-                                      <Icon name="edit"></Icon>
-                                      <span>Edit</span>
-                                    </DropdownItem>
-                                  </li>
-                                  {item.status !== "Suspend" && (
-                                    <React.Fragment>
-                                      <li className="divider"></li>
-                                      <li onClick={() => suspendUser(item.id)}>
-                                        <DropdownItem
-                                          tag="a"
-                                          href="#suspend"
-                                          onClick={(ev) => {
-                                            ev.preventDefault();
-                                          }}
-                                        >
-                                          <Icon name="na"></Icon>
-                                          <span>Suspend User</span>
-                                        </DropdownItem>
-                                      </li>
-                                    </React.Fragment>
-                                  )}
-                                </ul>
-                              </DropdownMenu>
-                            </UncontrolledDropdown>
-                          </li>
-                        </ul>
-                      </DataTableRow>
-                    </DataTableItem>
-                  );
-                })
+                      >
+                        {item.status}
+                      </span>
+                    </DataTableRow>
+                    <DataTableRow className="nk-tb-col-tools">
+                      <ul className="nk-tb-actions gx-1">
+                        <li className="nk-tb-action-hidden" onClick={() => onEditClick(item.id)}>
+                          <TooltipComponent
+                            tag="a"
+                            containerClassName="btn btn-trigger btn-icon"
+                            id={"edit" + item.id}
+                            icon="edit-alt-fill"
+                            direction="top"
+                            text="Edit"
+                          />
+                        </li>
+                        {item.status !== "Suspend" && (
+                          <React.Fragment>
+                            <li className="nk-tb-action-hidden" onClick={() => suspendUser(item.id)}>
+                              <TooltipComponent
+                                tag="a"
+                                containerClassName="btn btn-trigger btn-icon"
+                                id={"suspend" + item.id}
+                                icon="user-cross-fill"
+                                direction="top"
+                                text="Suspend"
+                              />
+                            </li>
+                          </React.Fragment>
+                        )}
+                        <li>
+                          <UncontrolledDropdown>
+                            <DropdownToggle tag="a" className="dropdown-toggle btn btn-icon btn-trigger">
+                              <Icon name="more-h"></Icon>
+                            </DropdownToggle>
+                            <DropdownMenu end>
+                              <ul className="link-list-opt no-bdr">
+                                <li onClick={() => onEditClick(item.id)}>
+                                  <DropdownItem
+                                    tag="a"
+                                    href="#edit"
+                                    onClick={(ev) => {
+                                      ev.preventDefault();
+                                    }}
+                                  >
+                                    <Icon name="edit"></Icon>
+                                    <span>Edit</span>
+                                  </DropdownItem>
+                                </li>
+                                {item.status !== "Suspend" && (
+                                  <React.Fragment>
+                                    <li className="divider"></li>
+                                    <li onClick={() => suspendUser(item.id)}>
+                                      <DropdownItem
+                                        tag="a"
+                                        href="#suspend"
+                                        onClick={(ev) => {
+                                          ev.preventDefault();
+                                        }}
+                                      >
+                                        <Icon name="na"></Icon>
+                                        <span>Suspend User</span>
+                                      </DropdownItem>
+                                    </li>
+                                  </React.Fragment>
+                                )}
+                              </ul>
+                            </DropdownMenu>
+                          </UncontrolledDropdown>
+                        </li>
+                      </ul>
+                    </DataTableRow>
+                  </DataTableItem>
+                );
+              })
               : null}
           </DataTableBody>
           <div className="card-inner">
