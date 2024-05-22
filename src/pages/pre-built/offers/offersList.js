@@ -297,7 +297,7 @@ const OfferListPage = () => {
                                             >
 
 
-                                                <Link style={{ color: "white" }} to={`${process.env.PUBLIC_URL}/new-offers-page`}>
+                                                <Link style={{ color: "white" }} to={`${process.env.PUBLIC_URL}/teklif-olustur`}>
                                                     Yeni Teklif Oluştur
                                                 </Link>
 

@@ -149,7 +149,7 @@ const Router = () => {
 
         <Route element={<UserContextProvider />} >
           <Route path="kisiler" element={<UserListRegular />}></Route>
-          <Route path="new-offers-page" element={<NewOffersPage />}></Route>
+          <Route path="teklif-olustur" element={<NewOffersPage />}></Route>
           <Route path="user-list-compact" element={<UserListCompact />}></Route>
           <Route path="user-contact-card" element={<UserContactCard />}></Route>
           <Route path="user-details-regular/:userId" element={<UserDetails />}></Route>
