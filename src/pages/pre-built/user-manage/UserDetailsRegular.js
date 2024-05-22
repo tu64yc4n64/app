@@ -350,9 +350,7 @@ const UserDetailsPage = () => {
                                 <Button
                                   className="toggle d-md-none"
                                   color="primary"
-                                  onClick={() => {
-                                    toggle("add");
-                                  }}
+                                  onClick={() => setModal({ add: true })}
                                 >
                                   <Icon name="plus"></Icon>
                                   <span>Görüşme Ekle</span>
