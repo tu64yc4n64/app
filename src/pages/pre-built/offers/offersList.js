@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { RSelect } from "../../../components/Component";
 import { offerData } from "./offersData";
 import DatePicker from "react-datepicker";
+import "./style.css"
 import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup, Modal, ModalBody } from "reactstrap";
 
 import {
@@ -285,7 +286,7 @@ const OfferListPage = () => {
                                                 color="primary"
 
                                             >
-                                                <Link>
+                                                <Link style={{ color: "white" }} to={`${process.env.PUBLIC_URL}/teklif-olustur`}>
                                                     Yeni Teklif Oluştur
                                                 </Link>
 
@@ -311,7 +312,7 @@ const OfferListPage = () => {
                     </BlockBetween>
 
                 </BlockHead>
-                <ul className="nk-block-tools gx-3" style={{ paddingBottom: "1.75rem" }}>
+                <ul className="nk-block-tools offers-tools-ul gx-3 d-md-flex d-inline-block" style={{ paddingBottom: "1.75rem" }}>
                     <li>
                         <div className="form-control-wrap">
                             <div className="form-icon form-icon-left">
@@ -319,7 +320,7 @@ const OfferListPage = () => {
                             </div>
                             <input
                                 type="text"
-                                className="form-control"
+                                className="form-control "
                                 id="default-04"
                                 placeholder="Tekliflerde Ara..."
                                 onChange={(e) => onFilterChange(e)}
@@ -327,49 +328,22 @@ const OfferListPage = () => {
                         </div>
                     </li>
                     <li>
-                        <UncontrolledDropdown>
-                            <DropdownToggle
-                                color="transparent"
-                                className="dropdown-toggle dropdown-indicator btn btn-outline-light btn-white"
-                            >
-                                Tarih
-                            </DropdownToggle>
-                            <DropdownMenu end>
-                                <ul className="link-list-opt no-bdr">
+                        <div className="form-group">
 
-                                </ul>
-                            </DropdownMenu>
-                        </UncontrolledDropdown>
+                            <RSelect placeholder="Tarih" />
+                        </div>
                     </li>
                     <li>
-                        <UncontrolledDropdown>
-                            <DropdownToggle
-                                color="transparent"
-                                className="dropdown-toggle dropdown-indicator btn btn-outline-light btn-white"
-                            >
-                                Kategori
-                            </DropdownToggle>
-                            <DropdownMenu end>
-                                <ul className="link-list-opt no-bdr">
+                        <div className="form-group">
 
-                                </ul>
-                            </DropdownMenu>
-                        </UncontrolledDropdown>
+                            <RSelect placeholder="Kategori" />
+                        </div>
                     </li>
                     <li>
-                        <UncontrolledDropdown>
-                            <DropdownToggle
-                                color="transparent"
-                                className="dropdown-toggle dropdown-indicator btn btn-outline-light btn-white"
-                            >
-                                Etiket
-                            </DropdownToggle>
-                            <DropdownMenu end>
-                                <ul className="link-list-opt no-bdr">
+                        <div className="form-group">
 
-                                </ul>
-                            </DropdownMenu>
-                        </UncontrolledDropdown>
+                            <RSelect placeholder="Etiket" />
+                        </div>
                     </li>
 
 
