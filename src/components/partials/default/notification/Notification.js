@@ -9,7 +9,7 @@ const Notifications = () => {
       <div className="card-inner border-bottom">
         <div className="card-title-group">
           <CardTitle>
-            <h6 className="title">Notifications</h6>
+            <h6 className="title">Hatırlatıcılar</h6>
           </CardTitle>
           <div className="card-tools">
             <a
@@ -19,14 +19,14 @@ const Notifications = () => {
                 ev.preventDefault();
               }}
             >
-              View All
+              Tümü
             </a>
           </div>
         </div>
       </div>
       <div className="card-inner">
         <div className="timeline">
-          <h6 className="timeline-head">November, 2019</h6>
+          <h6 className="timeline-head">Eylül, 2022</h6>
           <ul className="timeline-list">
             {notificationData.map((item) => {
               return (

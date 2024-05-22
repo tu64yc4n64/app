@@ -48,11 +48,11 @@ const NewsUsers = () => {
       <div className="card-inner">
         <div className="card-title-group">
           <CardTitle>
-            <h6 className="title">New Users</h6>
+            <h6 className="title">Yeni Müşteriler</h6>
           </CardTitle>
           <div className="card-tools">
-            <Link to={`${process.env.PUBLIC_URL}/user-list-regular`} className="link">
-              View All
+            <Link to={`${process.env.PUBLIC_URL}/kisiler`} className="link">
+              Tümünü Gör
             </Link>
           </div>
         </div>

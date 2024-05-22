@@ -8,8 +8,8 @@ const SaleRevenue = () => {
     <React.Fragment>
       <div className="card-title-group align-start mb-2">
         <CardTitle>
-          <h6 className="title">Sales Revenue</h6>
-          <p>In last 30 days revenue from subscription.</p>
+          <h6 className="title">Satış Gelirleri</h6>
+          <p></p>
         </CardTitle>
         <div className="card-tools">
           <TooltipComponent
@@ -31,7 +31,7 @@ const SaleRevenue = () => {
                 16.93%
               </span>
             </span>
-            <span className="sub-title">This Month</span>
+            <span className="sub-title">Bu Ay</span>
           </div>
           <div className="nk-sale-data">
             <span className="amount">
@@ -41,7 +41,7 @@ const SaleRevenue = () => {
                 4.26%
               </span>
             </span>
-            <span className="sub-title">This Week</span>
+            <span className="sub-title">Bu Hafta</span>
           </div>
         </div>
         <div className="nk-sales-ck sales-revenue">

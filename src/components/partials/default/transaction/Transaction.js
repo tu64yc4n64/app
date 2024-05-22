@@ -4,7 +4,7 @@ import UserAvatar from "../../../user/UserAvatar";
 import { transactionData } from "./TransactionData";
 import { CardTitle, UncontrolledDropdown, DropdownToggle, DropdownMenu, DropdownItem, Badge } from "reactstrap";
 import { DataTableBody, DataTableHead, DataTableItem, DataTableRow } from "../../../table/DataTable";
-import { Link } from "react-router-dom";
+
 
 const TransactionTable = () => {
   const [data, setData] = useState(transactionData);
@@ -12,9 +12,9 @@ const TransactionTable = () => {
   useEffect(() => {
     let filteredData;
     if (trans === "Due") {
-      filteredData = transactionData.filter((item) => item.status === "Due");
+      filteredData = transactionData.filter((item) => item.status === "Vadesi Dolmuş");
     } else if (trans === "Paid") {
-      filteredData = transactionData.filter((item) => item.status === "Paid");
+      filteredData = transactionData.filter((item) => item.status === "Ödendi");
     } else {
       filteredData = transactionData;
     }
@@ -73,10 +73,8 @@ const TransactionTable = () => {
         <div className="card-title-group">
           <CardTitle>
             <h6 className="title">
-              <span className="me-2">Transaction</span>{" "}
-              <Link to={`${process.env.PUBLIC_URL}/transaction-basic`} className="link d-none d-sm-inline">
-                See History
-              </Link>
+              <span className="me-2">Son Teklifler</span>{" "}
+
             </h6>
           </CardTitle>
           <div className="card-tools">
@@ -88,7 +86,7 @@ const TransactionTable = () => {
                     ev.preventDefault();
                   }}
                 >
-                  <span>Paid</span>
+                  <span>Ödenenler</span>
                 </a>
               </li>
               <li className={trans === "Due" ? "active" : ""} onClick={() => setTrans("Due")}>
@@ -98,7 +96,7 @@ const TransactionTable = () => {
                     ev.preventDefault();
                   }}
                 >
-                  <span>Pending</span>
+                  <span>Beklemede Olanlar</span>
                 </a>
               </li>
               <li className={trans === "" ? "active" : ""} onClick={() => setTrans("")}>
@@ -108,7 +106,7 @@ const TransactionTable = () => {
                     ev.preventDefault();
                   }}
                 >
-                  <span>All</span>
+                  <span>Hepsi</span>
                 </a>
               </li>
             </ul>
@@ -118,22 +116,22 @@ const TransactionTable = () => {
       <DataTableBody className="border-top" bodyclass="nk-tb-orders">
         <DataTableHead>
           <DataTableRow>
-            <span>Order No.</span>
+            <span>Teklif No</span>
           </DataTableRow>
           <DataTableRow size="sm">
-            <span>Customer</span>
+            <span>Müşteri</span>
           </DataTableRow>
           <DataTableRow size="md">
-            <span>Date</span>
+            <span>Tarih</span>
           </DataTableRow>
           <DataTableRow size="lg">
-            <span>Ref</span>
+            <span>Temsilci</span>
           </DataTableRow>
           <DataTableRow>
-            <span>Amount</span>
+            <span>Tutar</span>
           </DataTableRow>
           <DataTableRow>
-            <span className="d-none d-sm-inline">Status</span>
+            <span className="d-none d-sm-inline">Durum</span>
           </DataTableRow>
           <DataTableRow>
             <span>&nbsp;</span>
@@ -167,7 +165,7 @@ const TransactionTable = () => {
                 </span>
               </DataTableRow>
               <DataTableRow>
-                <Badge className="badge-dot badge-dot-xs" color={item.status === "Paid" ? "success" : item.status === "Due" ? "warning" : "danger"} >{item.status}</Badge>
+                <Badge className="badge-dot badge-dot-xs" color={item.status === "Ödendi" ? "success" : item.status === "Vadesi Dolmuş" ? "warning" : "danger"} >{item.status}</Badge>
               </DataTableRow>
               <DataTableRow className="nk-tb-col-action">
                 <DropdownTrans />

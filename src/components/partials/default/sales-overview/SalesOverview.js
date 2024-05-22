@@ -8,16 +8,16 @@ const SalesOverview = () => {
     <React.Fragment>
       <div className="card-title-group align-start gx-3 mb-3">
         <div className="card-title">
-          <h6 className="title">Sales Overview</h6>
+          <h6 className="title">Satışlara Genel Bakış</h6>
           <p>
-            In 30 days sales of product subscription.{" "}
+            30 gün içerisinde gerçekleşen satışlar.{" "}
             <a
               href="#details"
               onClick={(ev) => {
                 ev.preventDefault();
               }}
             >
-              See Details
+              Detay
             </a>
           </p>
         </div>
@@ -31,7 +31,7 @@ const SalesOverview = () => {
               >
                 <Icon className="d-none d-sm-inline" name="download-cloud" />
                 <span>
-                  <span className="d-none d-md-inline">Download</span> Report
+                  <span className="d-none d-md-inline">Raporu</span> İndir
                 </span>
               </a>
               <a
@@ -52,7 +52,7 @@ const SalesOverview = () => {
                       ev.preventDefault();
                     }}
                   >
-                    <span>Download Mini Version</span>
+                    <span>Mini Sürümü İndir</span>
                   </DropdownItem>
                 </li>
                 <li>
@@ -63,7 +63,7 @@ const SalesOverview = () => {
                       ev.preventDefault();
                     }}
                   >
-                    <span>Download Full Version</span>
+                    <span>Tam Versiyonu İndir</span>
                   </DropdownItem>
                 </li>
                 <li className="divider"></li>
@@ -76,7 +76,7 @@ const SalesOverview = () => {
                     }}
                   >
                     <Icon name="opt-alt" />
-                    <span>Options</span>
+                    <span>Ayarlar</span>
                   </DropdownItem>
                 </li>
               </ul>
@@ -90,7 +90,7 @@ const SalesOverview = () => {
         </div>
         <div className="nk-sale-data">
           <span className="amount sm">
-            1,937 <small>Subscribers</small>
+            156  <small>Satış</small>
           </span>
         </div>
       </div>

@@ -129,7 +129,9 @@ const UserDetailsPage = () => {
               <BlockHeadContent>
                 <BlockTitle tag="h3" page>
                   Kişiler / <strong className=" small">{user.name}</strong>
+
                 </BlockTitle>
+                <span className="badge bg-outline-secondary">{user.category}</span>
 
               </BlockHeadContent>
               <BlockHeadContent>

@@ -10,7 +10,7 @@ const RecentActivity = () => {
       <div className="card-inner border-bottom">
         <div className="card-title-group">
           <CardTitle>
-            <h6 className="title">Recent Activities</h6>
+            <h6 className="title">Son Aktiviteler</h6>
           </CardTitle>
           <div className="card-tools">
             <ul className="card-tools-nav">
@@ -21,7 +21,7 @@ const RecentActivity = () => {
                     ev.preventDefault();
                   }}
                 >
-                  <span>Cancel</span>
+                  <span>İptal</span>
                 </a>
               </li>
               <li className={recentUser === "" ? "active" : ""} onClick={() => setRecentUser("")}>
@@ -31,7 +31,7 @@ const RecentActivity = () => {
                     ev.preventDefault();
                   }}
                 >
-                  <span>All</span>
+                  <span>Tümü</span>
                 </a>
               </li>
             </ul>
@@ -41,37 +41,37 @@ const RecentActivity = () => {
       <ul className="nk-activity">
         {recentUser === "Cancel"
           ? activityData.slice(0, 3).map((item) => {
-              return (
-                <li className="nk-activity-item" key={item.name}>
-                  <UserAvatar
-                    className="nk-activity-media"
-                    theme={item.theme}
-                    image={item.img}
-                    text={item.initial}
-                  ></UserAvatar>
-                  <div className="nk-activity-data">
-                    <div className="label">{item.name + " " + item.activity}</div>
-                    <span className="time">{item.time}</span>
-                  </div>
-                </li>
-              );
-            })
+            return (
+              <li className="nk-activity-item" key={item.name}>
+                <UserAvatar
+                  className="nk-activity-media"
+                  theme={item.theme}
+                  image={item.img}
+                  text={item.initial}
+                ></UserAvatar>
+                <div className="nk-activity-data">
+                  <div className="label">{item.name + " " + item.activity}</div>
+                  <span className="time">{item.time}</span>
+                </div>
+              </li>
+            );
+          })
           : activityData.map((item) => {
-              return (
-                <li className="nk-activity-item" key={item.name}>
-                  <UserAvatar
-                    className="nk-activity-media"
-                    theme={item.theme}
-                    image={item.img}
-                    text={item.initial}
-                  ></UserAvatar>
-                  <div className="nk-activity-data">
-                    <div className="label">{item.name + " " + item.activity}</div>
-                    <span className="time">{item.time}</span>
-                  </div>
-                </li>
-              );
-            })}
+            return (
+              <li className="nk-activity-item" key={item.name}>
+                <UserAvatar
+                  className="nk-activity-media"
+                  theme={item.theme}
+                  image={item.img}
+                  text={item.initial}
+                ></UserAvatar>
+                <div className="nk-activity-data">
+                  <div className="label">{item.name + " " + item.activity}</div>
+                  <span className="time">{item.time}</span>
+                </div>
+              </li>
+            );
+          })}
       </ul>
     </React.Fragment>
   );

@@ -9,7 +9,7 @@ const AvgSubscription = () => {
       {" "}
       <div className="card-title-group align-start mb-2">
         <CardTitle>
-          <h6 className="title">Avg Subscriptions</h6>
+          <h6 className="title">Ortalama Teklif Tutarı</h6>
         </CardTitle>
         <div className="card-tools">
           <TooltipComponent
@@ -29,7 +29,7 @@ const AvgSubscription = () => {
               <Icon name="arrow-long-up" />
               2.45%
             </span>
-            since last week
+            geçen aydan bugüne
           </span>
         </div>
         <div className="nk-sales-ck">
