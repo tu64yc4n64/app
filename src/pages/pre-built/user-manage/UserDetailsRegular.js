@@ -17,7 +17,7 @@ import {
   DataTableBody,
   DataTableHead,
   DataTableRow,
-  DataTableItem,
+  DataTableItem, PaginationComponent
 
 } from "../../../components/Component";
 
@@ -33,6 +33,8 @@ const UserDetailsPage = () => {
   const [data] = contextData;
   const [sm, updateSm] = useState(false);
   const [sideBar, setSidebar] = useState(false);
+  const [itemPerPage, setItemPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState();
   const [noteData, setNoteData] = useState(notes);
   const [addNoteModal, setAddNoteModal] = useState(false);
@@ -119,6 +121,8 @@ const UserDetailsPage = () => {
     setSearchText(e.target.value);
   };
 
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <>
       <Head title="User Details - Regular"></Head>
@@ -187,7 +191,7 @@ const UserDetailsPage = () => {
                             </li>
                             <li>
                               <Icon name="ticket-fill"></Icon>
-                              <strong className="ps-3"><span class="badge bg-outline-secondary">Etiket</span></strong>
+                              <strong className="ps-3"><span className="badge bg-outline-secondary">Etiket</span></strong>
                             </li>
                             <li>
                               <Icon name="calender-date-fill"></Icon>
@@ -204,7 +208,7 @@ const UserDetailsPage = () => {
 
 
                     </div>
-                    <div className="card-bordered card" >
+                    <div className="card-bordered card" style={{ marginBottom: "28px" }} >
                       <CardBody className="card-inner">
                         <CardTitle tag="h6">Adres</CardTitle>
 
@@ -220,6 +224,8 @@ const UserDetailsPage = () => {
                   </div>
 
                   {sideBar && <div className="toggle-overlay" onClick={() => toggle()}></div>}
+
+
                   <div className="col-md-8">
 
                     <div className="card-bordered card" >
@@ -290,17 +296,9 @@ const UserDetailsPage = () => {
                       <div className="card-inner">
                         <BlockHeadContent>
                           <div className="toggle-wrap nk-block-tools-toggle">
-                            <a
-                              href="#more"
-                              className="btn btn-icon btn-trigger toggle-expand me-n1"
-                              onClick={(ev) => {
-                                ev.preventDefault();
-                                updateSm(!sm);
-                              }}
-                            >
-                              <Icon name="more-v"></Icon>
-                            </a>
-                            <div className="pb-4" style={{ display: "flex", "justifyContent": "space-between" }}>
+
+
+                            <div className="pb-4 d-md-flex" style={{ "justifyContent": "space-between" }}>
                               <ul className="nk-block-tools g-3">
                                 <li>
                                   <div className="form-control-wrap">
@@ -348,9 +346,9 @@ const UserDetailsPage = () => {
                                 </li>
 
                               </ul>
-                              <div className="nk-block-tools-opt">
+                              <div className="nk-block-tools-opt d-md-block d-flex justify-content-end">
                                 <Button
-                                  className="toggle btn-icon d-md-none"
+                                  className="toggle d-md-none"
                                   color="primary"
                                   onClick={() => {
                                     toggle("add");
@@ -546,6 +544,20 @@ const UserDetailsPage = () => {
                             })
                             : null}
                         </DataTableBody>
+                        <div className="card-inner">
+                          {data.length > 0 ? (
+                            <PaginationComponent
+                              itemPerPage={itemPerPage}
+                              totalItems={data.length}
+                              paginate={paginate}
+                              currentPage={currentPage}
+                            />
+                          ) : (
+                            <div className="text-center">
+                              <span className="text-silent">Herhangi bir müşteri bulunamadı</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -558,9 +570,9 @@ const UserDetailsPage = () => {
               </div>
             </div>
 
-          </Block>
+          </Block >
           <AddMeetModal modal={modal.add} closeModal={closeModal} />
-        </Content>
+        </Content >
 
       )}
     </>
