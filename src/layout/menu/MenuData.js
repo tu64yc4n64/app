@@ -32,7 +32,7 @@ const menu = [
     icon: "card-view",
     text: "Teklifler",
     active: false,
-    link: "/",
+    link: "/teklifler",
 
   },
   {

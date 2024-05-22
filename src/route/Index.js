@@ -4,6 +4,8 @@ import { ProductContextProvider } from "../pages/pre-built/products/ProductConte
 import { UserContextProvider } from "../pages/pre-built/user-manage/UserContext";
 
 import Homepage from "../pages/Homepage";
+import OfferListPage from "../pages/pre-built/offers/offersList";
+import NewOffersPage from "../pages/pre-built/offers/newOffersPage";
 import Crypto from "../pages/Crypto";
 import Analytics from "../pages/Analytics";
 import Invest from "../pages/Invest";
@@ -134,6 +136,7 @@ const Router = () => {
       <Route path={`${process.env.PUBLIC_URL}`} element={<Layout />}>
 
         <Route index element={<Homepage />}></Route>
+        <Route path="teklifler" element={<OfferListPage />}></Route>
 
         <Route path="crypto" element={<Crypto />}></Route>
         <Route path="analytics" element={<Analytics />}></Route>
@@ -146,6 +149,7 @@ const Router = () => {
 
         <Route element={<UserContextProvider />} >
           <Route path="kisiler" element={<UserListRegular />}></Route>
+          <Route path="new-offers-page" element={<NewOffersPage />}></Route>
           <Route path="user-list-compact" element={<UserListCompact />}></Route>
           <Route path="user-contact-card" element={<UserContactCard />}></Route>
           <Route path="user-details-regular/:userId" element={<UserDetails />}></Route>
