@@ -9,7 +9,7 @@ import { RSelect } from "../../../components/Component";
 import { offerData } from "./offersData";
 import DatePicker from "react-datepicker";
 import "./style.css"
-import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup, Modal, ModalBody } from "reactstrap";
+import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup } from "reactstrap";
 
 import {
     Block,
@@ -534,13 +534,7 @@ const OfferListPage = () => {
                         </Card>
                     </DataTable>
                 </Block>
-                <Modal className="modal-dialog-centered" size="lg">
 
-                </Modal>
-
-                <Modal className="modal-dialog-centered" size="lg">
-
-                </Modal>
 
                 <SimpleBar
                     className={`nk-add-product toggle-slide toggle-slide-right toggle-screen-any ${view.add ? "content-active" : ""
@@ -565,7 +559,7 @@ const OfferListPage = () => {
                                                 type="text"
                                                 className="form-control"
                                                 {...register('name', {
-                                                    required: "Lütfen boş bıraklın alanları doldurunuz.",
+                                                    required: "Lütfen boş bırakılan alanları doldurunuz.",
                                                 })}
                                                 placeholder="Ad"
                                                 value={formData.name}

@@ -6,6 +6,10 @@
     display: inline;
     float: left;
   }
+  .new-offer-create strong {
+    min-height: 24px;
+    display: block;
+  }
 @media screen and (max-width: 767px) {
   .offers-tools-ul li {
     width: 50% !important;
