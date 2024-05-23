@@ -280,7 +280,7 @@ const NewOffersPage = () => {
                                     <Col xl="1" lg="6" className="pb-xl-0 pb-3">
                                         <strong className="text-dark"></strong>
                                         <hr className="d-xl-block d-none"></hr>
-                                        <button onClick={handleAddOffer} className="btn btn-primary btn-icon"><Icon name="check"></Icon></button>
+                                        <button className="btn btn-primary btn-icon"><Icon name="check"></Icon></button>
                                     </Col>
                                 </Row>
 
