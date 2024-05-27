@@ -30,11 +30,73 @@ import {
 
 } from "../../../components/Component";
 
+import axios from "axios";
+
+const BASE_URL = "http://localhost:3000/"
+
 const UserListRegularPage = () => {
-  const [data, setData] = useState(userData);
+
+  const getAllUsers = async () => {
+    try {
+      const response = await axios.get(BASE_URL + "persons");
+      setData(response.data);
+    } catch (error) {
+      console.error("There was an error fetching the data!", error);
+    }
+  };
+  const getAllCategories = async () => {
+    try {
+      const response = await axios.get(BASE_URL + "categories");
+      setCategories(response.data);
+    } catch (error) {
+      console.error("There was an error fetching the data!", error);
+    }
+  };
+  const getAllTags = async () => {
+    try {
+      const response = await axios.get(BASE_URL + "tags");
+      setTags(response.data);
+    } catch (error) {
+      console.error("There was an error fetching the data!", error);
+    }
+  };
+  useEffect(() => {
+    getAllUsers()
+
+  }, [])
+
+
+
+  const [data, setData] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState([]);
+  const [selectedTag, setSelectedTag] = useState([]);
+  const formattedCategories = categories.map(category => ({
+    value: category.id,
+    label: category.name
+  }));
+  const formattedTags = tags.map(tag => ({
+    value: tag.id,
+    label: tag.name
+  }));
+  const handleCategoryChange = (selectedOption) => {
+    setSelectedCategory(selectedOption);
+  };
+  const handleTagChange = (selectedOption) => {
+    setSelectedTag(selectedOption);
+  };
+  useEffect(() => {
+    getAllCategories()
+
+  }, [categories])
+  useEffect(() => {
+    getAllTags()
+
+  }, [tags])
   const [sm, updateSm] = useState(false);
   const [tablesm, updateTableSm] = useState(false);
-  const [startDate, setStartDate] = useState(null);
+  const [startDate, setStartDate] = useState();
   const [itemPerPage, setItemPerPage] = useState(10);
   const [sort, setSortState] = useState("");
   const [onSearch, setonSearch] = useState(true);
@@ -50,15 +112,23 @@ const UserListRegularPage = () => {
     }
   };
   const [formData, setFormData] = useState({
-    name: "",
-    img: null,
-    sku: "",
-    price: 0,
-    salePrice: 0,
-    stock: 0,
-    category: [],
-    fav: false,
-    check: false,
+    first_name: "",
+    last_name: "",
+    company: "",
+    department: "",
+    job_title: "",
+    birthday: "",
+    categories: [],
+    tags: [],
+    country: "",
+    city: "",
+    district: "",
+    address_line: "",
+    phone: "",
+    email: "",
+    website: "",
+    is_active: true,
+    customer_representatives: []
   });
   const [editId, setEditedId] = useState();
   const [view, setView] = useState({
@@ -95,39 +165,65 @@ const UserListRegularPage = () => {
   };
 
   const resetForm = () => {
+    setSelectedCategory([])
+    setSelectedTag([])
+    setStartDate()
     setFormData({
-      name: "",
-      img: null,
-      sku: "",
-      price: 0,
-      salePrice: 0,
-      stock: 0,
-      category: [],
-      fav: false,
-      check: false,
+      first_name: "",
+      last_name: "",
+      company: "",
+      department: "",
+      job_title: "",
+      birthday: "",
+      categories: [],
+      tags: [],
+      country: "",
+      city: "",
+      district: "",
+      address_line: "",
+      phone: "",
+      email: "",
+      website: "",
+      is_active: true,
+      customer_representatives: []
     });
+
     reset({});
   };
 
-  const onFormSubmit = (form) => {
-    const { title, price, salePrice, sku, stock } = form;
+  const onFormSubmit = async (form) => {
+    const { first_name, last_name, job_title, email, phone, startDate, address_line } = form;
 
     let submittedData = {
-      id: data.length + 1,
-      name: title,
-      img: files.length > 0 ? files[0].preview : ProductH,
-      sku: sku,
-      price: price,
-      salePrice: salePrice,
-      stock: stock,
-      category: formData.category,
-      fav: false,
-      check: false,
+      first_name: first_name,
+      last_name: last_name,
+      company: 1,
+      department: "Sales",
+      job_title: job_title,
+      birthday: startDate,
+      categories: selectedCategory,
+      tags: selectedTag,
+      country: "",
+      city: "",
+      district: "",
+      address_line: address_line,
+      phone: phone,
+      email: email,
+      website: "http://johndoe.com",
+      is_active: true,
+      customer_representatives: [1]
     };
-    setData([submittedData, ...data]);
-    setView({ open: false });
-    setFiles([]);
-    resetForm();
+
+    try {
+      const response = await axios.post(BASE_URL + "persons", submittedData);
+      setData([response.data, ...data]);
+      setView({ open: false });
+      setFiles([]);
+
+      resetForm();
+    } catch (error) {
+      console.error("There was an error posting the data!", error);
+    }
   };
 
   const onEditSubmit = () => {
@@ -157,7 +253,7 @@ const UserListRegularPage = () => {
     setView({ edit: false, add: false });
   };
 
-  // function that loads the want to editted data
+
   const onEditClick = (id) => {
     data.forEach((item) => {
       if (item.id === id) {
@@ -207,10 +303,14 @@ const UserListRegularPage = () => {
   };
 
   // function to delete a product
-  const deleteProduct = (id) => {
-    let defaultData = data;
-    defaultData = defaultData.filter((item) => item.id !== id);
-    setData([...defaultData]);
+  const deleteProduct = async (id) => {
+    try {
+      await axios.delete(`${BASE_URL}persons/${id}`);
+      let defaultData = data.filter((item) => item.id !== id);
+      setData([...defaultData]);
+    } catch (error) {
+      console.error("There was an error deleting the data!", error);
+    }
   };
 
   // function to delete the seletected item
@@ -471,7 +571,7 @@ const UserListRegularPage = () => {
                               <Link to={`${process.env.PUBLIC_URL}/user-details-regular/${item.id}`}>
                                 <span className="tb-product" style={{ flexDirection: "column", display: "flex", alignItems: "start" }}>
 
-                                  <span className="title">{item.name}</span>
+                                  <span className="title">{item.first_name} {item.last_name}</span>
                                   <small className="text-soft">{item.email}</small>
                                 </span>
                               </Link>
@@ -481,17 +581,25 @@ const UserListRegularPage = () => {
                               <span className="tb-sub">{item.phone}</span>
                             </DataTableRow>
                             <DataTableRow>
-                              <span className="badge bg-outline-secondary">{item.category}</span>
+                              {item.categories && item.categories.length > 0 && item.categories.map((category, index) => (
+                                <span key={index} className="badge bg-outline-secondary me-1">
+                                  {category.label}
+                                </span>
+                              ))}
                             </DataTableRow>
-                            <DataTableRow size="md">
-                              <span className="badge bg-outline-secondary">{item.ticket}</span>
+                            <DataTableRow>
+                              {item.tags && item.tags.length > 0 && item.tags.map((tag, index) => (
+                                <span key={index} className="badge bg-outline-secondary me-1">
+                                  {tag.label}
+                                </span>
+                              ))}
                             </DataTableRow>
                             <DataTableRow size="md">
                               <span className="tb-sub">{item.city}</span>
                             </DataTableRow>
                             <DataTableRow size="md">
                               <img style={{ borderRadius: "50%", width: "25px" }} src={ProductH} alt="product" className="thumb" />
-                              <span style={{ paddingLeft: "5px" }} className="tb-sub">{item.representative.name}</span>
+                              <span style={{ paddingLeft: "5px" }} className="tb-sub"></span>
                             </DataTableRow>
                             <DataTableRow size="md">
                               <span className="badge bg-outline-secondary">{item.status}</span>
@@ -611,13 +719,13 @@ const UserListRegularPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        {...register('name', {
+                        {...register('first_name', {
                           required: "Lütfen boş bıraklın alanları doldurunuz.",
                         })}
                         placeholder="Adı"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                        value={formData.first_name}
+                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} />
+                      {errors.first_name && <span className="invalid">{errors.first_name.message}</span>}
                     </div>
                   </div>
                 </Col>
@@ -628,13 +736,13 @@ const UserListRegularPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        {...register('name', {
+                        {...register('last_name', {
                           required: "Lütfen boş bıraklın alanları doldurunuz.",
                         })}
                         placeholder="Soyadı"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                        value={formData.last_name}
+                        onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} />
+                      {errors.last_name && <span className="invalid">{errors.last_name.message}</span>}
                     </div>
                   </div>
                 </Col>
@@ -645,13 +753,11 @@ const UserListRegularPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        {...register('name', {
-                          required: "Lütfen boş bıraklın alanları doldurunuz.",
-                        })}
                         placeholder="Ünvan"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                        value={formData.job_title}
+                        onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} />
+
+
                     </div>
                   </div>
                 </Col>
@@ -662,9 +768,6 @@ const UserListRegularPage = () => {
                       <RSelect
                         name="category"
                         isMulti
-
-
-
                         placeholder="Firma"
                       //ref={register({ required: "This is required" })}
                       />
@@ -680,13 +783,13 @@ const UserListRegularPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        {...register('name', {
+                        {...register('email', {
                           required: "Lütfen boş bıraklın alanları doldurunuz.",
                         })}
                         placeholder="Email"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                      {errors.email && <span className="invalid">{errors.email.message}</span>}
                     </div>
                   </div>
                 </Col>
@@ -697,13 +800,11 @@ const UserListRegularPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        {...register('name', {
-                          required: "Lütfen boş bıraklın alanları doldurunuz.",
-                        })}
+
                         placeholder="Telefon No 1"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+
                     </div>
                   </div>
                 </Col>
@@ -714,13 +815,9 @@ const UserListRegularPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        {...register('name', {
-                          required: "Lütfen boş bıraklın alanları doldurunuz.",
-                        })}
                         placeholder="Telefon No 2"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                      />
+
                     </div>
                   </div>
                 </Col>
@@ -733,6 +830,7 @@ const UserListRegularPage = () => {
                         onChange={(date) => setStartDate(date)}
                         className="form-control"
                         placeholderText="Doğum Tarihi"
+
                       />
                     </div>
                   </div>
@@ -744,16 +842,13 @@ const UserListRegularPage = () => {
                   <div className="form-group">
 
                     <div className="form-control-wrap">
+
                       <RSelect
-                        name="category"
+                        name="representative"
                         isMulti
-
-
-
                         placeholder="Temsilci"
-                      //ref={register({ required: "This is required" })}
                       />
-                      {errors.category && <span className="invalid">{errors.category.message}</span>}
+
                     </div>
                   </div>
                 </Col>
@@ -764,13 +859,13 @@ const UserListRegularPage = () => {
                       <RSelect
                         name="category"
                         isMulti
-
-
-
                         placeholder="Kategori"
-                      //ref={register({ required: "This is required" })}
+                        options={formattedCategories}
+                        onChange={(selectedOption) => handleCategoryChange(selectedOption)}
+                        value={selectedCategory}
+
                       />
-                      {errors.category && <span className="invalid">{errors.category.message}</span>}
+
                     </div>
                   </div>
                 </Col>
@@ -779,15 +874,14 @@ const UserListRegularPage = () => {
 
                     <div className="form-control-wrap">
                       <RSelect
-                        name="category"
+                        name="tag"
                         isMulti
-
-
-
                         placeholder="Etiket"
-                      //ref={register({ required: "This is required" })}
+                        options={formattedTags}
+                        onChange={(selectedOption) => handleTagChange(selectedOption)}
+                        value={selectedTag}
+
                       />
-                      {errors.category && <span className="invalid">{errors.category.message}</span>}
                     </div>
                   </div>
                 </Col>
@@ -798,13 +892,10 @@ const UserListRegularPage = () => {
                       <textarea
                         type="text"
                         className="form-control"
-                        {...register('name', {
-                          required: "Lütfen boş bıraklın alanları doldurunuz.",
-                        })}
+
                         placeholder="Notlar"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                      />
+
                     </div>
                   </div>
                 </Col>
@@ -818,13 +909,11 @@ const UserListRegularPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        {...register('name', {
-                          required: "Lütfen boş bıraklın alanları doldurunuz.",
-                        })}
+
                         placeholder="Adres"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                      {errors.name && <span className="invalid">{errors.name.message}</span>}
+                        value={formData.address_line}
+                        onChange={(e) => setFormData({ ...formData, address_line: e.target.value })} />
+
                     </div>
                   </div>
                 </Col>
@@ -836,9 +925,9 @@ const UserListRegularPage = () => {
                         name="category"
                         isMulti
                         placeholder="Şehir"
-                      //ref={register({ required: "This is required" })}
+
                       />
-                      {errors.category && <span className="invalid">{errors.category.message}</span>}
+
                     </div>
                   </div>
                 </Col>
@@ -850,9 +939,9 @@ const UserListRegularPage = () => {
                         name="category"
                         isMulti
                         placeholder="İlçe"
-                      //ref={register({ required: "This is required" })}
+
                       />
-                      {errors.category && <span className="invalid">{errors.category.message}</span>}
+
                     </div>
                   </div>
                 </Col>
@@ -864,9 +953,9 @@ const UserListRegularPage = () => {
                         name="category"
                         isMulti
                         placeholder="Ülke"
-                      //ref={register({ required: "This is required" })}
+
                       />
-                      {errors.category && <span className="invalid">{errors.category.message}</span>}
+
                     </div>
                   </div>
                 </Col>
@@ -878,13 +967,9 @@ const UserListRegularPage = () => {
                       <input
                         type="text"
                         className="form-control"
-                        {...register('name', {
-                          required: "Lütfen boş bıraklın alanları doldurunuz.",
-                        })}
                         placeholder="Posta Kodu"
+                      />
 
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                      {errors.name && <span className="invalid">{errors.name.message}</span>}
                     </div>
                   </div>
                 </Col>
@@ -900,7 +985,6 @@ const UserListRegularPage = () => {
                         <span>Vazgeç</span>
                       </Button>
                       <Button color="primary" type="submit">
-
                         <span>Kaydet</span>
                       </Button>
                     </ButtonGroup>

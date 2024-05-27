@@ -1,28 +1,147 @@
 {
-   "persons": [ 
+  "persons": [
     {
-    "id": 1,
-    "first_name": "John",
-    "last_name": "Doe",
-    "company": 1,
-    "department": "Sales",
-    "job_title": "Manager",
-    "birthday": "1985-05-15",
-    "categories": [2],
-    "tags": [2],
-    "created_at": "2024-05-22T13:07:28.655707Z",
-    "updated_at": "2024-05-22T13:07:28.655707Z",
-    "added_by": "admin",
-    "user": "johndoe",
-    "customer_representatives": [1],
-    "country": "USA",
-    "city": "New York",
-    "district": "Brooklyn",
-    "address_line": "456 7th Ave",
-    "phone": "9876543210",
-    "email": "john.doe@example.com",
-    "website": "http://johndoe.com",
-    "is_active": true
-}
-]
+      "id": "e0ae",
+      "first_name": "asda",
+      "last_name": "asda",
+      "company": 1,
+      "department": "Sales",
+      "job_title": "asda",
+      "categories": [
+        {
+          "value": 2,
+          "label": "IT"
+        }
+      ],
+      "tags": [
+        {
+          "value": 1,
+          "label": "Urgent"
+        }
+      ],
+      "country": "",
+      "city": "",
+      "district": "",
+      "address_line": "asda",
+      "phone": "asdsa",
+      "email": "asda",
+      "website": "http://johndoe.com",
+      "is_active": true,
+      "customer_representatives": [
+        1
+      ]
+    },
+    {
+      "id": "87ae",
+      "first_name": "asda",
+      "last_name": "asda",
+      "company": 1,
+      "department": "Sales",
+      "job_title": "asda",
+      "categories": [
+        {
+          "value": 1,
+          "label": "Logistics"
+        },
+        {
+          "value": 2,
+          "label": "IT"
+        }
+      ],
+      "tags": [
+        {
+          "value": 1,
+          "label": "Urgent"
+        },
+        {
+          "value": 2,
+          "label": "VIP"
+        }
+      ],
+      "country": "",
+      "city": "",
+      "district": "",
+      "address_line": "asda",
+      "phone": "asda",
+      "email": "asda",
+      "website": "http://johndoe.com",
+      "is_active": true,
+      "customer_representatives": [
+        1
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "name": "Logistics",
+      "parent": null,
+      "type": "company"
+    },
+    {
+      "id": 2,
+      "name": "IT",
+      "parent": null,
+      "type": "person"
+    }
+  ],
+  "companies": [
+    {
+      "id": 1,
+      "name": "Zenmira",
+      "industry": "Logistics",
+      "size": 10,
+      "categories": [
+        1,
+        2
+      ],
+      "tags": [
+        1,
+        2
+      ],
+      "created_at": "2024-05-22T13:07:28.655707Z",
+      "updated_at": "2024-05-22T13:07:28.655707Z",
+      "added_by": "admin",
+      "updated_by": "admin",
+      "customer_representatives": [
+        1,
+        2
+      ],
+      "tax_number": "123456789",
+      "tax_office": "Some Office",
+      "country": "USA",
+      "city": "New York",
+      "district": "Manhattan",
+      "address_line": "123 5th Ave",
+      "phone": "1234567890",
+      "email": "info@zenmira.com",
+      "website": "http://zenmira.com",
+      "is_active": true
+    }
+  ],
+  "tags": [
+    {
+      "id": 1,
+      "name": "Urgent",
+      "type": "company"
+    },
+    {
+      "id": 2,
+      "name": "VIP",
+      "type": "person"
+    }
+  ],
+  "contact_histories": [
+    {
+      "id": 1,
+      "contact_type": "email",
+      "content": "Follow-up on the project",
+      "date": "2024-05-20T10:00:00Z",
+      "person": 1,
+      "company": 1,
+      "added_by": "admin",
+      "created_at": "2024-05-22T13:07:28.655707Z",
+      "updated_at": "2024-05-22T13:07:28.655707Z"
+    }
+  ]
 }
