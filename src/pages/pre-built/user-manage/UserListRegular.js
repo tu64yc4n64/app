@@ -614,7 +614,7 @@ const UserListRegularPage = () => {
                         {...register('name', {
                           required: "Lütfen boş bıraklın alanları doldurunuz.",
                         })}
-                        placeholder="Ad"
+                        placeholder="Adı"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                       {errors.name && <span className="invalid">{errors.name.message}</span>}
