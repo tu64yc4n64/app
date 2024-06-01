@@ -17,7 +17,7 @@ const menu = [
   {
     icon: "users",
     text: "Firmalar",
-    link: "/",
+    link: "/firmalar",
     active: false,
 
   },

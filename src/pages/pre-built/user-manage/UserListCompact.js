@@ -699,16 +699,16 @@ const UserListCompact = () => {
                         <li>
                           <Icon
                             className={`text-${item.emailStatus === "success"
-                                ? "success"
-                                : item.emailStatus === "pending"
-                                  ? "info"
-                                  : "secondary"
+                              ? "success"
+                              : item.emailStatus === "pending"
+                                ? "info"
+                                : "secondary"
                               }`}
                             name={`${item.emailStatus === "success"
-                                ? "check-circle"
-                                : item.emailStatus === "alert"
-                                  ? "alert-circle"
-                                  : "alarm-alt"
+                              ? "check-circle"
+                              : item.emailStatus === "alert"
+                                ? "alert-circle"
+                                : "alarm-alt"
                               }`}
                           ></Icon>{" "}
                           <span>Email</span>

@@ -124,6 +124,7 @@ import Success from "../pages/auth/Success";
 
 import Layout from "../layout/Index";
 import LayoutNoSidebar from "../layout/Index-nosidebar";
+import CompanyList from "../pages/pre-built/company/CompanyList";
 
 const Router = () => {
   const location = useLocation();
@@ -136,6 +137,7 @@ const Router = () => {
       <Route path={`${process.env.PUBLIC_URL}`} element={<Layout />}>
 
         <Route index element={<Homepage />}></Route>
+        <Route path="firmalar" element={<CompanyList />}></Route>
         <Route path="teklifler" element={<OfferListPage />}></Route>
 
         <Route path="crypto" element={<Crypto />}></Route>

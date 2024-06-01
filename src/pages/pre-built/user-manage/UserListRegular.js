@@ -6,9 +6,8 @@ import SimpleBar from "simplebar-react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { RSelect } from "../../../components/Component";
-import { userData } from "./UserData";
 import DatePicker from "react-datepicker";
-import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup, Modal, ModalBody } from "reactstrap";
+import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup, Modal, ModalBody, Badge } from "reactstrap";
 
 import {
   Block,
@@ -32,21 +31,15 @@ import {
 
 import axios from "axios";
 
-const BASE_URL = "http://localhost:3000/"
+
+const BASE_URL = "http://tiosone.com/customers/api/"
 
 const UserListRegularPage = () => {
 
-  const getAllUsers = async () => {
-    try {
-      const response = await axios.get(BASE_URL + "persons");
-      setData(response.data);
-    } catch (error) {
-      console.error("There was an error fetching the data!", error);
-    }
-  };
+
   const getAllCategories = async () => {
     try {
-      const response = await axios.get(BASE_URL + "categories");
+      const response = await axios.get(BASE_URL + "categories?type=person");
       setCategories(response.data);
     } catch (error) {
       console.error("There was an error fetching the data!", error);
@@ -54,8 +47,28 @@ const UserListRegularPage = () => {
   };
   const getAllTags = async () => {
     try {
-      const response = await axios.get(BASE_URL + "tags");
+      const response = await axios.get(BASE_URL + "tags?type=person");
       setTags(response.data);
+    } catch (error) {
+      console.error("There was an error fetching the data!", error);
+    }
+  };
+
+
+
+
+  const [data, setData] = useState([]);
+  const token = "72ba3c48d87b3d820c790d1e69367636be28f822";
+
+  const getAllUsers = async () => {
+    try {
+      const response = await axios.get(BASE_URL + "persons", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setData(response.data);
+      setOriginalData(response.data);
     } catch (error) {
       console.error("There was an error fetching the data!", error);
     }
@@ -64,10 +77,6 @@ const UserListRegularPage = () => {
     getAllUsers()
 
   }, [])
-
-
-
-  const [data, setData] = useState([]);
   const [categories, setCategories] = useState([]);
   const [tags, setTags] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState([]);
@@ -89,18 +98,17 @@ const UserListRegularPage = () => {
   useEffect(() => {
     getAllCategories()
 
-  }, [categories])
+  }, [])
   useEffect(() => {
     getAllTags()
 
-  }, [tags])
+  }, [])
   const [sm, updateSm] = useState(false);
   const [tablesm, updateTableSm] = useState(false);
   const [startDate, setStartDate] = useState();
   const [itemPerPage, setItemPerPage] = useState(10);
   const [sort, setSortState] = useState("");
   const [onSearch, setonSearch] = useState(true);
-
   const sortFunc = (params) => {
     let defaultData = data;
     if (params === "asc") {
@@ -111,6 +119,10 @@ const UserListRegularPage = () => {
       setData([...sortedData]);
     }
   };
+  const durum = [
+    { value: true, label: 'Aktif' },
+    { value: false, label: 'Pasif' },
+  ];
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -146,15 +158,15 @@ const UserListRegularPage = () => {
     view.add ? document.body.classList.add("toggle-shown") : document.body.classList.remove("toggle-shown");
   }, [view.add])
 
-  // Changing state value when searching name
+  const [originalData, setOriginalData] = useState([]);
   useEffect(() => {
     if (onSearchText !== "") {
-      const filteredObject = userData.filter((item) => {
-        return item.name.toLowerCase().includes(onSearchText.toLowerCase());
+      const filteredObject = data.filter((item) => {
+        return item.first_name.toLowerCase().includes(onSearchText.toLowerCase());
       });
       setData([...filteredObject]);
     } else {
-      setData([...userData]);
+      setData([...originalData]);
     }
   }, [onSearchText]);
 
@@ -191,8 +203,9 @@ const UserListRegularPage = () => {
     reset({});
   };
 
+
   const onFormSubmit = async (form) => {
-    const { first_name, last_name, job_title, email, phone, startDate, address_line } = form;
+    const { first_name, last_name, job_title, email, phone, address_line, birthday } = form;
 
     let submittedData = {
       first_name: first_name,
@@ -200,12 +213,12 @@ const UserListRegularPage = () => {
       company: 1,
       department: "Sales",
       job_title: job_title,
-      birthday: startDate,
+      birthday: birthday.toISOString().split('T')[0],
       categories: selectedCategory,
       tags: selectedTag,
-      country: "",
-      city: "",
-      district: "",
+      country: "Türkiye",
+      city: "Denizli",
+      district: "Pamukkale",
       address_line: address_line,
       phone: phone,
       email: email,
@@ -213,6 +226,7 @@ const UserListRegularPage = () => {
       is_active: true,
       customer_representatives: [1]
     };
+
 
     try {
       const response = await axios.post(BASE_URL + "persons", submittedData);
@@ -226,7 +240,7 @@ const UserListRegularPage = () => {
     }
   };
 
-  const onEditSubmit = () => {
+  const onEditSubmit = async () => {
     let submittedData;
     let newItems = data;
     let index = newItems.findIndex((item) => item.id === editId);
@@ -234,41 +248,68 @@ const UserListRegularPage = () => {
     newItems.forEach((item) => {
       if (item.id === editId) {
         submittedData = {
-          id: editId,
-          name: formData.name,
-          img: files.length > 0 ? files[0].preview : item.img,
-          sku: formData.sku,
-          price: formData.price,
-          salePrice: formData.salePrice,
-          stock: formData.stock,
-          category: formData.category,
-          fav: false,
-          check: false,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          company: formData.company,
+          department: formData.department,
+          job_title: formData.job_title,
+          birthday: new Date(formData.birthday),
+          categories: formData.categories,
+          tags: formData.tags,
+          country: formData.country,
+          city: formData.city,
+          district: formData.district,
+          address_line: formData.address_line,
+          phone: formData.phone,
+          email: formData.email,
+          website: formData.website,
+          is_active: formData.is_active,
+          customer_representatives: formData.customer_representatives,
         };
       }
     });
-    newItems[index] = submittedData;
-    //setData(newItems);
-    resetForm();
-    setView({ edit: false, add: false });
+
+    try {
+      // Veritabanını güncelleme isteği
+      const response = await axios.put(BASE_URL + "persons/" + editId, submittedData);
+
+      // Veritabanı güncelleme başarılı olursa yerel veriyi güncelle
+      newItems[index] = response.data;
+      setData(newItems);
+      resetForm();
+      setView({ edit: false, add: false });
+    } catch (error) {
+      console.error('Veritabanını güncelleme sırasında hata oluştu:', error);
+    }
   };
 
 
   const onEditClick = (id) => {
     data.forEach((item) => {
       if (item.id === id) {
+
         setFormData({
-          name: item.name,
-          img: item.img,
-          sku: item.sku,
-          price: item.price,
-          salePrice: item.salePrice,
-          stock: item.stock,
-          category: item.category,
-          fav: false,
-          check: false,
+          first_name: item.first_name,
+          last_name: item.last_name,
+          company: item.company,
+          department: item.department,
+          job_title: item.job_title,
+          birthday: new Date(item.birthday),
+          categories: item.categories,
+          tags: item.tags,
+          country: item.country,
+          city: item.city,
+          district: item.district,
+          address_line: item.address_line,
+          phone: item.phone,
+          email: item.email,
+          website: item.website,
+          is_active: true,
+          customer_representatives: item.customer_representatives,
+
         });
       }
+
     });
     setEditedId(id);
     setFiles([]);
@@ -346,6 +387,7 @@ const UserListRegularPage = () => {
   const indexOfLastItem = currentPage * itemPerPage;
   const indexOfFirstItem = indexOfLastItem - itemPerPage;
   const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
+
 
   // Change Page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -550,7 +592,7 @@ const UserListRegularPage = () => {
                       </DataTableRow>
                     </DataTableHead>
                     {currentItems.length > 0
-                      ? currentItems.map((item) => {
+                      ? currentItems.reverse().map((item) => {
 
                         return (
                           <DataTableItem key={item.id}>
@@ -601,8 +643,10 @@ const UserListRegularPage = () => {
                               <img style={{ borderRadius: "50%", width: "25px" }} src={ProductH} alt="product" className="thumb" />
                               <span style={{ paddingLeft: "5px" }} className="tb-sub"></span>
                             </DataTableRow>
-                            <DataTableRow size="md">
-                              <span className="badge bg-outline-secondary">{item.status}</span>
+                            <DataTableRow>
+                              <span className={`tb-status text-${item.is_active ? "success" : "danger"}`}>
+                                {item.is_active ? "Aktif" : "Pasif"}
+                              </span>
                             </DataTableRow>
                             <DataTableRow className="nk-tb-col-tools">
                               <ul className="nk-tb-actions gx-1 my-n1">
@@ -689,12 +733,419 @@ const UserListRegularPage = () => {
             </Card>
           </DataTable>
         </Block>
-        <Modal className="modal-dialog-centered" size="lg">
+        <Modal isOpen={view.edit} toggle={() => onFormCancel()} className="modal-dialog-centered" size="lg">
+          <ModalBody>
+            <a href="#cancel" className="close">
+              {" "}
+              <Icon
+                name="cross-sm"
+                onClick={(ev) => {
+                  ev.preventDefault();
+                  onFormCancel();
+                }}
+              ></Icon>
+            </a>
+            <div className="p-2">
+              <h5 className="title">Update Product</h5>
+              <div className="mt-4">
+                <form noValidate onSubmit={handleSubmit(onEditSubmit)}>
+                  <Row className="g-3">
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Adı
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+                            {...register('first_name', {
+                              required: "Lütfen alanları boş bırakmayınız",
+                            })}
+                            value={formData.first_name}
+                            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} />
+                          {errors.first_name && <span className="invalid">{errors.first_name.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Soyadı
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+                            {...register('last_name', {
+                              required: "Lütfen alanları boş bırakmayınız",
+                            })}
+                            value={formData.last_name}
+                            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} />
+                          {errors.last_name && <span className="invalid">{errors.last_name.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Şirket
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
 
+                            value={formData.company}
+                            onChange={(e) => setFormData({ ...formData, company: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Bölüm
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.department}
+                            onChange={(e) => setFormData({ ...formData, department: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Ünvan
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.job_title}
+                            onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Doğum Günü
+                        </label>
+                        <div className="form-control-wrap">
+                          <DatePicker
+                            selected={formData.birthday}
+                            onChange={(e) => setFormData({ ...formData, birthday: e })}
+                            className="form-control"
+                            placeholderText="Doğum Tarihi"
+
+                          />
+                        </div>
+                      </div>
+                    </Col>
+
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Kategori
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={formattedCategories}
+                            value={formData.categories}
+                            onChange={(value) => setFormData({ ...formData, categories: value })}
+                          />
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Etiketler
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={formattedTags}
+                            value={formData.tags}
+                            onChange={(value) => setFormData({ ...formData, tags: value })}
+                          />
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Ülke
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.country}
+                            onChange={(e) => setFormData({ ...formData, country: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Şehir
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.city}
+                            onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          İlçe
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.district}
+                            onChange={(e) => setFormData({ ...formData, district: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Adres
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.address_line}
+                            onChange={(e) => setFormData({ ...formData, address_line: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Telefon
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Email
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Website
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.website}
+                            onChange={(e) => setFormData({ ...formData, website: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Durum
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+
+                            options={durum}
+                            value={durum.find(option => option.value === formData.is_active)}
+                            onChange={(selectedOption) => setFormData({ ...formData, is_active: selectedOption.value })}
+
+                          />
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Temsilci
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                          />
+                        </div>
+                      </div>
+                    </Col>
+
+
+
+                    <Col size="12">
+                      <Button color="primary" type="submit">
+
+                        <span>Kişiyi Güncelle</span>
+                      </Button>
+                    </Col>
+                  </Row>
+                </form>
+              </div>
+            </div>
+          </ModalBody>
         </Modal>
 
-        <Modal className="modal-dialog-centered" size="lg">
+        <Modal isOpen={view.details} toggle={() => onFormCancel()} className="modal-dialog-centered" size="lg">
+          <ModalBody>
+            <a href="#cancel" className="close">
+              {" "}
+              <Icon
+                name="cross-sm"
+                onClick={(ev) => {
+                  ev.preventDefault();
+                  onFormCancel();
+                }}
+              ></Icon>
+            </a>
+            <div className="nk-modal-head">
+              <h4 className="nk-modal-title title">
+                Kişi Bilgileri <small className="text-primary"></small>
+              </h4>
 
+            </div>
+            <div className="nk-tnx-details mt-sm-3">
+              <Row className="gy-3">
+                <Col lg={4}>
+                  <span className="sub-text">Adı</span>
+                  <span className="caption-text">{formData.first_name}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Soyadı</span>
+                  <span className="caption-text">{formData.last_name}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Şirket</span>
+                  <span className="caption-text">{formData.company}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Departman</span>
+                  <span className="caption-text">{formData.department}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Ünvan</span>
+                  <span className="caption-text">{formData.job_title}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Doğum Günü</span>
+                  <span className="caption-text">{new Date(formData.birthday).toLocaleDateString('tr-TR')}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Kategori</span>
+                  <span className="caption-text">
+                    {formData.categories.map((item, index) => (
+                      <span key={index} className="badge bg-outline-secondary me-1">
+                        {item.label}
+                      </span>
+                    ))}
+                  </span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Etiket</span>
+                  <span className="caption-text">
+                    {formData.tags.map((item, index) => (
+                      <span key={index} className="badge bg-outline-secondary me-1">
+                        {item.label}
+                      </span>
+                    ))}
+                  </span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Ülke</span>
+                  <span className="caption-text">{formData.country}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Şehir</span>
+                  <span className="caption-text">{formData.city}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">İlçe</span>
+                  <span className="caption-text">{formData.district}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Adres</span>
+                  <span className="caption-text">{formData.address_line}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Telefon</span>
+                  <span className="caption-text">{formData.phone}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">E-mail</span>
+                  <span className="caption-text">{formData.email}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Website</span>
+                  <span className="caption-text">{formData.website}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Durum</span>
+                  <span className="caption-text">{formData.is_active ? "Aktif" : "Pasif"}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Temsilci</span>
+                  <span className="caption-text">
+                    {formData.customer_representatives.map((item, index) => (
+                      <span key={index} className="badge bg-outline-secondary me-1">
+                        {item}
+                      </span>
+                    ))}
+                  </span>
+                </Col>
+
+              </Row>
+            </div>
+          </ModalBody>
         </Modal>
 
         <SimpleBar
@@ -763,22 +1214,6 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
-
-                    <div className="form-control-wrap">
-                      <RSelect
-                        name="category"
-                        isMulti
-                        placeholder="Firma"
-                      //ref={register({ required: "This is required" })}
-                      />
-                      {errors.category && <span className="invalid">{errors.category.message}</span>}
-                    </div>
-                  </div>
-                </Col>
-
-                <Col size="12">
-                  <div className="form-group">
-
                     <div className="form-control-wrap">
                       <input
                         type="text"
@@ -801,7 +1236,7 @@ const UserListRegularPage = () => {
                         type="text"
                         className="form-control"
 
-                        placeholder="Telefon No 1"
+                        placeholder="Telefon No"
 
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
 
@@ -812,22 +1247,10 @@ const UserListRegularPage = () => {
                   <div className="form-group">
 
                     <div className="form-control-wrap">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Telefon No 2"
-                      />
-
-                    </div>
-                  </div>
-                </Col>
-                <Col size="6">
-                  <div className="form-group">
-
-                    <div className="form-control-wrap">
                       <DatePicker
-                        selected={startDate}
-                        onChange={(date) => setStartDate(date)}
+
+                        onChange={(e) => setFormData({ ...formData, birthday: e })}
+                        selected={formData.birthday}
                         className="form-control"
                         placeholderText="Doğum Tarihi"
 
@@ -835,9 +1258,36 @@ const UserListRegularPage = () => {
                     </div>
                   </div>
                 </Col>
+                <Col size="6">
+                  <div className="form-group">
+
+                    <div className="form-control-wrap">
+                      <input
+                        type="text"
+                        className="form-control"
+
+                        placeholder="Website"
+
+                        onChange={(e) => setFormData({ ...formData, website: e.target.value })} />
+
+                    </div>
+                  </div>
+                </Col>
                 <BlockDes>
                   <p>Kategorilendirme</p>
                 </BlockDes>
+                <Col size="6">
+                  <div className="form-group">
+
+                    <div className="form-control-wrap">
+                      <RSelect
+                        name="tag"
+                        isMulti
+                        placeholder="Departman"
+                      />
+                    </div>
+                  </div>
+                </Col>
                 <Col size="6">
                   <div className="form-group">
 
@@ -879,23 +1329,7 @@ const UserListRegularPage = () => {
                         placeholder="Etiket"
                         options={formattedTags}
                         onChange={(selectedOption) => handleTagChange(selectedOption)}
-                        value={selectedTag}
-
-                      />
-                    </div>
-                  </div>
-                </Col>
-                <Col size="12">
-                  <div className="form-group">
-
-                    <div className="form-control-wrap">
-                      <textarea
-                        type="text"
-                        className="form-control"
-
-                        placeholder="Notlar"
-                      />
-
+                        value={selectedTag} />
                     </div>
                   </div>
                 </Col>
@@ -959,28 +1393,10 @@ const UserListRegularPage = () => {
                     </div>
                   </div>
                 </Col>
-
-                <Col md="6">
-                  <div className="form-group">
-
-                    <div className="form-control-wrap">
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="Posta Kodu"
-                      />
-
-                    </div>
-                  </div>
-                </Col>
-
-
-
-
                 <Col size="12">
                   <div className="flex justify-end">
                     <ButtonGroup>
-                      <Button type="button" onClick={() => setView({ ...view, add: false })} className="btn btn-outline-primary">
+                      <Button type="button" onClick={() => onFormCancel()} className="btn btn-outline-primary">
 
                         <span>Vazgeç</span>
                       </Button>
