@@ -32,7 +32,7 @@ import {
 import axios from "axios";
 
 
-const BASE_URL = "http://tiosone.com/customers/api/"
+const BASE_URL = "https://tiosone.com/customers/api/"
 
 const UserListRegularPage = () => {
 
