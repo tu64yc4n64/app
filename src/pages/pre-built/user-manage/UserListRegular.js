@@ -39,7 +39,12 @@ const UserListRegularPage = () => {
 
   const getAllCategories = async () => {
     try {
-      const response = await axios.get(BASE_URL + "categories?type=person");
+      const response = await axios.get(BASE_URL + "categories?type=person", {
+        headers: {
+          ContentType: 'application/json', // Corrected header name
+          Authorization: `Bearer ${token}`  // Added semicolon
+        }
+      });;
       setCategories(response.data);
     } catch (error) {
       console.error("There was an error fetching the data!", error);
@@ -47,7 +52,12 @@ const UserListRegularPage = () => {
   };
   const getAllTags = async () => {
     try {
-      const response = await axios.get(BASE_URL + "tags?type=person");
+      const response = await axios.get(BASE_URL + "tags?type=person", {
+        headers: {
+          ContentType: 'application/json', // Corrected header name
+          Authorization: `Bearer ${token}`  // Added semicolon
+        }
+      });;
       setTags(response.data);
     } catch (error) {
       console.error("There was an error fetching the data!", error);
@@ -61,10 +71,13 @@ const UserListRegularPage = () => {
   const token = "72ba3c48d87b3d820c790d1e69367636be28f822";
 
   const getAllUsers = async () => {
+
     try {
+
       const response = await axios.get(BASE_URL + "persons", {
         headers: {
-          Authorization: `Bearer ${token}`
+          ContentType: 'application/json', // Corrected header name
+          Authorization: `Bearer ${token}`  // Added semicolon
         }
       });
       setData(response.data);
