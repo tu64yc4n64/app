@@ -17,7 +17,7 @@ import { Form, Spinner, Alert } from "reactstrap";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 import axios from "axios";
-const BASE_URL = "https://tiosone.com/users/api/users/login/";
+const BASE_URL = "https://tiosone.com/users/api/users/login";
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
