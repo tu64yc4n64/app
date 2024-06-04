@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import Logo from "../../images/logo.png";
 import LogoDark from "../../images/logo-dark.png";
 import Head from "../../layout/head/Head";
@@ -16,7 +17,7 @@ import {
 import { Form, Spinner, Alert } from "reactstrap";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
-import axios from "axios";
+
 const BASE_URL = "https://tiosone.com/users/api/users/login/";
 
 const Login = () => {
@@ -28,16 +29,13 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await axios.post(BASE_URL, {
-        email: formData.name,
-        password: formData.passcode
-      }, {
-        headers: {
-          Authorization: `Bearer 72ba3c48d87b3d820c790d1e69367636be28f822`
-        }
+        username: formData.name,
+        password: formData.passcode,
       });
 
-      if (response.data && response.data.token) {
-        localStorage.setItem("accessToken", response.data.token);
+      if (response.data.token) {
+
+        localStorage.setItem("accessToken", JSON.stringify(response.data.token));
         setTimeout(() => {
           window.history.pushState(
             `${process.env.PUBLIC_URL ? process.env.PUBLIC_URL : "/"}`,
@@ -60,7 +58,7 @@ const Login = () => {
   return (
     <>
       <Head title="Login" />
-      <Block className="nk-block-middle nk-auth-body wide-xs">
+      <Block className="nk-block-middle nk-auth-body  wide-xs">
         <div className="brand-logo pb-4 text-center">
           <Link to={process.env.PUBLIC_URL + "/"} className="logo-link">
             <img className="logo-light logo-img logo-img-lg" src={Logo} alt="logo" />
@@ -80,7 +78,7 @@ const Login = () => {
           {errorVal && (
             <div className="mb-3">
               <Alert color="danger" className="alert-icon">
-                <Icon name="alert-circle" /> {errorVal}
+                <Icon name="alert-circle" /> Unable to login with credentials{" "}
               </Alert>
             </div>
           )}
@@ -96,10 +94,8 @@ const Login = () => {
                   type="text"
                   id="default-01"
                   {...register('name', { required: "This field is required" })}
-                  defaultValue="admin64"
                   placeholder="Enter your email address or username"
-                  className="form-control-lg form-control"
-                />
+                  className="form-control-lg form-control" />
                 {errors.name && <span className="invalid">{errors.name.message}</span>}
               </div>
             </div>
@@ -122,16 +118,15 @@ const Login = () => {
                   className={`form-icon lg form-icon-right passcode-switch ${passState ? "is-hidden" : "is-shown"}`}
                 >
                   <Icon name="eye" className="passcode-icon icon-show"></Icon>
+
                   <Icon name="eye-off" className="passcode-icon icon-hide"></Icon>
                 </a>
                 <input
                   type={passState ? "text" : "password"}
                   id="password"
                   {...register('passcode', { required: "This field is required" })}
-                  defaultValue="Tiosnet456**"
                   placeholder="Enter your passcode"
-                  className={`form-control-lg form-control ${passState ? "is-hidden" : "is-shown"}`}
-                />
+                  className={`form-control-lg form-control ${passState ? "is-hidden" : "is-shown"}`} />
                 {errors.passcode && <span className="invalid">{errors.passcode.message}</span>}
               </div>
             </div>

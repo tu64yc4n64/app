@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "../layout/head/Head";
 import Content from "../layout/content/Content";
 import SaleRevenue from "../components/partials/default/sale-revenue/SaleRevenue";
@@ -27,6 +27,12 @@ import {
 } from "../components/Component";
 
 const Homepage = () => {
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (accessToken) {
+      console.log(JSON.parse(accessToken)); // API yanıtını burada logluyoruz
+    }
+  }, []);
   const [sm, updateSm] = useState(false);
   return (
     <>

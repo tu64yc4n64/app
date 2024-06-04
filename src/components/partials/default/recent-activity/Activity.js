@@ -40,9 +40,9 @@ const RecentActivity = () => {
       </div>
       <ul className="nk-activity">
         {recentUser === "Cancel"
-          ? activityData.slice(0, 3).map((item) => {
+          ? activityData.slice(0, 3).map((item, id) => {
             return (
-              <li className="nk-activity-item" key={item.name}>
+              <li className="nk-activity-item" key={id}>
                 <UserAvatar
                   className="nk-activity-media"
                   theme={item.theme}
@@ -56,9 +56,9 @@ const RecentActivity = () => {
               </li>
             );
           })
-          : activityData.map((item) => {
+          : activityData.map((item, id) => {
             return (
-              <li className="nk-activity-item" key={item.name}>
+              <li className="nk-activity-item" key={id}>
                 <UserAvatar
                   className="nk-activity-media"
                   theme={item.theme}
