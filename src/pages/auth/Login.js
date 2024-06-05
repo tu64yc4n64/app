@@ -18,7 +18,7 @@ import { Form, Spinner, Alert } from "reactstrap";
 import { useForm } from "react-hook-form";
 import { Link } from "react-router-dom";
 
-const BASE_URL = "https://tiosone.com/users/api/users/login/";
+const BASE_URL = "https://tiosone.com/api/token/";
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -28,20 +28,27 @@ const Login = () => {
   const onFormSubmit = async (formData) => {
     setLoading(true);
     try {
-      const response = await axios.post(BASE_URL, {
-        username: formData.name,
-        password: formData.passcode,
-      });
+      const response = await axios.post(
+        BASE_URL,
+        {
+          username: formData.name,
+          password: formData.passcode,
+        },
+        {
+          headers: {
+            ContentType: 'application/json'
+          }
+        }
+      );
 
-      if (response.data.token) {
+      const { token } = response.data.token;
 
-        localStorage.setItem("accessToken", JSON.stringify(response.data.token));
+      if (token) {
+        console.log(token);
+        localStorage.setItem("accessToken", JSON.stringify(token));
         setTimeout(() => {
-          window.history.pushState(
-            `${process.env.PUBLIC_URL ? process.env.PUBLIC_URL : "/"}`,
-            "auth-login",
-            `${process.env.PUBLIC_URL ? process.env.PUBLIC_URL : "/"}`
-          );
+          const baseUrl = process.env.PUBLIC_URL ? process.env.PUBLIC_URL : "/";
+          window.history.pushState(baseUrl, "auth-login", baseUrl);
           window.location.reload();
         }, 1000);
       } else {
@@ -49,9 +56,11 @@ const Login = () => {
       }
     } catch (error) {
       setError("Cannot login with credentials");
+    } finally {
       setLoading(false);
     }
   };
+
 
   const { register, handleSubmit, formState: { errors } } = useForm();
 

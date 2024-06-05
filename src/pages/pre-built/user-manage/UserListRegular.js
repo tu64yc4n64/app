@@ -41,8 +41,8 @@ const UserListRegularPage = () => {
     try {
       const response = await axios.get(BASE_URL + "categories?type=person", {
         headers: {
-          ContentType: 'application/json', // Corrected header name
-          Authorization: `Bearer ${token}`  // Added semicolon
+          ContentType: 'application/json',
+          Authorization: `Bearer ${token}`
         }
       });;
       setCategories(response.data);
@@ -54,8 +54,8 @@ const UserListRegularPage = () => {
     try {
       const response = await axios.get(BASE_URL + "tags?type=person", {
         headers: {
-          ContentType: 'application/json', // Corrected header name
-          Authorization: `Bearer ${token}`  // Added semicolon
+          ContentType: 'application/json',
+          Authorization: `Bearer ${token}`
         }
       });;
       setTags(response.data);
@@ -76,8 +76,8 @@ const UserListRegularPage = () => {
 
       const response = await axios.get(BASE_URL + "persons", {
         headers: {
-          ContentType: 'application/json', // Corrected header name
-          Authorization: `Bearer ${token}`  // Added semicolon
+          ContentType: 'application/json',
+          Authorization: `Bearer ${token}`
         }
       });
       setData(response.data);
