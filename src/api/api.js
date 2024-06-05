@@ -1,16 +1,60 @@
 import axios from 'axios';
 
-// API base URL ve token'i buraya ekleyin
-const API_URL = 'http://tiosone.com/';
-const TOKEN = '72ba3c48d87b3d820c790d1e69367636be28f822';
-
-// Axios instance oluşturma
 const api = axios.create({
-    baseURL: API_URL,
+    baseURL: 'https://api.example.com',
     headers: {
-        'Authorization': `Bearer ${TOKEN}`,
-        'Content-Type': 'application/json'
-    }
+        'Content-Type': 'application/json',
+    },
 });
+
+// Token yenileme fonksiyonu
+const refreshAccessToken = async () => {
+    try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const response = await axios.post('https://api.example.com/auth/refresh', { token: refreshToken });
+        const { access } = response.data;
+
+        localStorage.setItem('accessToken', access);
+        api.defaults.headers.common['Authorization'] = `Bearer ${access}`;
+
+        return access;
+    } catch (error) {
+        console.error('Token yenileme hatası:', error);
+        return null;
+    }
+};
+
+// Axios interceptor ekle
+api.interceptors.response.use(
+    response => response,
+    async error => {
+        const originalRequest = error.config;
+
+        if (error.response.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
+
+            const newAccessToken = await refreshAccessToken();
+            if (newAccessToken) {
+                originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+                return api(originalRequest);
+            } else {
+                // Token yenilenemezse, kullanıcıyı logout et
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
+api.interceptors.request.use(
+    async config => {
+        const accessToken = localStorage.getItem('accessToken');
+        if (accessToken) {
+            config.headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+        return config;
+    },
+    error => Promise.reject(error)
+);
 
 export default api;

@@ -36,16 +36,15 @@ const Login = () => {
         },
         {
           headers: {
-            ContentType: 'application/json'
+            'Content-Type': 'application/json'
           }
         }
       );
 
-      const { token } = response.data.token;
-
+      const token = response.data;
       if (token) {
-        console.log(token);
-        localStorage.setItem("accessToken", JSON.stringify(token));
+        localStorage.setItem("accessToken", JSON.stringify(token.access));
+        localStorage.setItem("refreshToken", JSON.stringify(token.refresh));
         setTimeout(() => {
           const baseUrl = process.env.PUBLIC_URL ? process.env.PUBLIC_URL : "/";
           window.history.pushState(baseUrl, "auth-login", baseUrl);

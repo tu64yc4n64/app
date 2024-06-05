@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { RSelect } from "../../../components/Component";
 import DatePicker from "react-datepicker";
+import api from '../../../api/api';
 import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup, Modal, ModalBody, Badge } from "reactstrap";
 
 import {
@@ -41,8 +42,8 @@ const UserListRegularPage = () => {
     try {
       const response = await axios.get(BASE_URL + "categories?type=person", {
         headers: {
-          ContentType: 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });;
       setCategories(response.data);
@@ -54,8 +55,8 @@ const UserListRegularPage = () => {
     try {
       const response = await axios.get(BASE_URL + "tags?type=person", {
         headers: {
-          ContentType: 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
         }
       });;
       setTags(response.data);
@@ -68,22 +69,77 @@ const UserListRegularPage = () => {
 
 
   const [data, setData] = useState([]);
-  const token = "72ba3c48d87b3d820c790d1e69367636be28f822";
+  const tokenn = localStorage.getItem('accessToken')
+  console.log(tokenn)
 
-  const getAllUsers = async () => {
+
+  const refreshAccessToken = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (!refreshToken) {
+      console.error('No refresh token found in local storage.');
+      return null;
+    }
 
     try {
-
-      const response = await axios.get(BASE_URL + "persons", {
+      const response = await axios.post("https://tiosone.com/api/token/refresh/", {
+        refresh: refreshToken
+      }, {
         headers: {
-          ContentType: 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
+        }
+      });
+      const newAccessToken = response.data.access;
+      localStorage.setItem('accessToken', newAccessToken);
+      return newAccessToken;
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        console.error("Refresh token is invalid or expired. User needs to re-login.");
+        // Redirect to login page or handle the situation accordingly
+        window.location.href = '/auth-login';
+      } else {
+        console.error("Error refreshing access token", error);
+      }
+      return null;
+    }
+  };
+
+
+
+  const getAllUsers = async () => {
+    let accessToken = localStorage.getItem('accessToken');
+
+    try {
+      const response = await axios.get(BASE_URL + "persons/", {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       setData(response.data);
       setOriginalData(response.data);
     } catch (error) {
-      console.error("There was an error fetching the data!", error);
+      if (error.response && error.response.status === 401) {
+        // Token geçersiz veya süresi dolmuş
+        accessToken = await refreshAccessToken();
+        if (accessToken) {
+          // Yeni token ile tekrar dene
+          try {
+            const response = await axios.get(BASE_URL + "persons/", {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+              }
+            });
+            setData(response.data);
+            setOriginalData(response.data);
+          } catch (retryError) {
+            console.error("Retry error after refreshing token", retryError);
+          }
+        }
+      } else {
+        console.error("There was an error fetching the data!", error);
+      }
     }
   };
   useEffect(() => {
@@ -240,18 +296,34 @@ const UserListRegularPage = () => {
       customer_representatives: [1]
     };
 
-
     try {
-      const response = await axios.post(BASE_URL + "persons", submittedData);
+      const response = await axios.post(BASE_URL + "persons/", submittedData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
       setData([response.data, ...data]);
       setView({ open: false });
       setFiles([]);
-
       resetForm();
     } catch (error) {
-      console.error("There was an error posting the data!", error);
+      if (error.response) {
+        // Sunucudan gelen yanıt var
+        console.error("Error response from server:", error.response.data);
+        console.error("Status code:", error.response.status);
+        console.error("Headers:", error.response.headers);
+      } else if (error.request) {
+        // İstek gönderildi ama yanıt alınamadı
+        console.error("No response received:", error.request);
+      } else {
+        // İstek hazırlanırken bir hata oluştu
+        console.error("Error setting up request:", error.message);
+      }
+      console.error("Config:", error.config);
     }
   };
+
 
   const onEditSubmit = async () => {
     let submittedData;

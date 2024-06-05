@@ -29,8 +29,10 @@ import {
 const Homepage = () => {
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
+    const refreshToken = localStorage.getItem("refreshToken");
     if (accessToken) {
-      console.log(JSON.parse(accessToken)); // API yanıtını burada logluyoruz
+      console.log(JSON.parse(accessToken));
+      console.log(JSON.parse(refreshToken));
     }
   }, []);
   const [sm, updateSm] = useState(false);
