@@ -95,8 +95,7 @@ const UserListRegularPage = () => {
     } catch (error) {
       if (error.response && error.response.status === 401) {
         console.error("Refresh token is invalid or expired. User needs to re-login.");
-        // Redirect to login page or handle the situation accordingly
-        window.location.href = '/auth-login';
+
       } else {
         console.error("Error refreshing access token", error);
       }
