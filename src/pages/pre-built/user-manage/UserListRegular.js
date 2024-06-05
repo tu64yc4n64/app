@@ -37,13 +37,14 @@ const BASE_URL = "https://tiosone.com/customers/api/"
 
 const UserListRegularPage = () => {
 
-
+  const tokenString = localStorage.getItem('accessToken')
+  const tokenn = JSON.parse(tokenString)
   const getAllCategories = async () => {
     try {
       const response = await axios.get(BASE_URL + "categories?type=person", {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          Authorization: `Bearer ${tokenn}`
         }
       });;
       setCategories(response.data);
@@ -56,7 +57,7 @@ const UserListRegularPage = () => {
       const response = await axios.get(BASE_URL + "tags?type=person", {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('accessToken')}`
+          Authorization: `Bearer ${tokenn}`
         }
       });;
       setTags(response.data);
@@ -65,16 +66,10 @@ const UserListRegularPage = () => {
     }
   };
 
-
-
-
   const [data, setData] = useState([]);
-  const tokenn = localStorage.getItem('accessToken')
-  console.log(tokenn)
-
-
   const refreshAccessToken = async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshTokenString = localStorage.getItem('refreshToken');
+    const refreshToken = JSON.parse(refreshTokenString)
 
     if (!refreshToken) {
       console.error('No refresh token found in local storage.');
@@ -106,7 +101,8 @@ const UserListRegularPage = () => {
 
 
   const getAllUsers = async () => {
-    let accessToken = localStorage.getItem('accessToken');
+    let accessTokenString = localStorage.getItem('accessToken');
+    let accessToken = JSON.parse(accessTokenString)
 
     try {
       const response = await axios.get(BASE_URL + "persons/", {
@@ -273,33 +269,36 @@ const UserListRegularPage = () => {
 
 
   const onFormSubmit = async (form) => {
+    let accessTokenString = localStorage.getItem('accessToken');
+    let accessToken = JSON.parse(accessTokenString);
     const { first_name, last_name, job_title, email, phone, address_line, birthday } = form;
 
     let submittedData = {
       first_name: first_name,
       last_name: last_name,
-      company: 1,
-      department: "Sales",
-      job_title: job_title,
-      birthday: birthday.toISOString().split('T')[0],
-      categories: selectedCategory,
-      tags: selectedTag,
-      country: "Türkiye",
-      city: "Denizli",
-      district: "Pamukkale",
-      address_line: address_line,
-      phone: phone,
+      //  company: "",
+      //  department: "",
+      //  job_title: "",
+      //  birthday: "",
+      //  categories: [],
+      //  tags: [],
+      //  country: "",
+      //  city: "",
+      //  district: "",
+      //  address_line: "",
+      //  phone: "",
       email: email,
-      website: "http://johndoe.com",
+      // website: "",
       is_active: true,
-      customer_representatives: [1]
+      // customer_representatives: [1],
+      added_by: [1]
     };
 
     try {
       const response = await axios.post(BASE_URL + "persons/", submittedData, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       setData([response.data, ...data]);
@@ -307,21 +306,10 @@ const UserListRegularPage = () => {
       setFiles([]);
       resetForm();
     } catch (error) {
-      if (error.response) {
-        // Sunucudan gelen yanıt var
-        console.error("Error response from server:", error.response.data);
-        console.error("Status code:", error.response.status);
-        console.error("Headers:", error.response.headers);
-      } else if (error.request) {
-        // İstek gönderildi ama yanıt alınamadı
-        console.error("No response received:", error.request);
-      } else {
-        // İstek hazırlanırken bir hata oluştu
-        console.error("Error setting up request:", error.message);
-      }
-      console.error("Config:", error.config);
+      console.error("An error occurred:", error);
     }
   };
+
 
 
   const onEditSubmit = async () => {
@@ -429,14 +417,23 @@ const UserListRegularPage = () => {
 
   // function to delete a product
   const deleteProduct = async (id) => {
+    let accessTokenString = localStorage.getItem('accessToken');
+    let accessToken = JSON.parse(accessTokenString);
+
     try {
-      await axios.delete(`${BASE_URL}persons/${id}`);
-      let defaultData = data.filter((item) => item.id !== id);
-      setData([...defaultData]);
+      await axios.delete(`${BASE_URL}persons/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      let updatedData = data.filter((item) => item.id !== id);
+      setData([...updatedData]);
     } catch (error) {
-      console.error("There was an error deleting the data!", error);
+      console.error("There was an error deleting the product!", error);
     }
   };
+
 
   // function to delete the seletected item
   const selectorDeleteProduct = () => {
