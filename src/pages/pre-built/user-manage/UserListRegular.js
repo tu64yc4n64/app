@@ -215,7 +215,7 @@ const UserListRegularPage = () => {
   const [onSearchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [files, setFiles] = useState([]);
+
 
   //scroll off when sidebar shows
   useEffect(() => {
@@ -303,7 +303,7 @@ const UserListRegularPage = () => {
       });
       setData([response.data, ...data]);
       setView({ open: false });
-      setFiles([]);
+
       resetForm();
     } catch (error) {
       console.error("An error occurred:", error);
@@ -313,6 +313,8 @@ const UserListRegularPage = () => {
 
 
   const onEditSubmit = async () => {
+    let accessTokenString = localStorage.getItem('accessToken');
+    let accessToken = JSON.parse(accessTokenString);
     let submittedData;
     let newItems = data;
     let index = newItems.findIndex((item) => item.id === editId);
@@ -322,28 +324,33 @@ const UserListRegularPage = () => {
         submittedData = {
           first_name: formData.first_name,
           last_name: formData.last_name,
-          company: formData.company,
-          department: formData.department,
-          job_title: formData.job_title,
-          birthday: new Date(formData.birthday),
-          categories: formData.categories,
-          tags: formData.tags,
-          country: formData.country,
-          city: formData.city,
-          district: formData.district,
-          address_line: formData.address_line,
-          phone: formData.phone,
+          // company: formData.company,
+          // department: formData.department,
+          // job_title: formData.job_title,
+          //birthday: new Date(formData.birthday),
+          // categories: formData.categories,
+          //  tags: formData.tags,
+          // country: formData.country,
+          //  city: formData.city,
+          // district: formData.district,
+          // address_line: formData.address_line,
+          // phone: formData.phone,
           email: formData.email,
-          website: formData.website,
+          //  website: formData.website,
           is_active: formData.is_active,
-          customer_representatives: formData.customer_representatives,
+          // customer_representatives: formData.customer_representatives,
+          added_by: [1]
         };
       }
     });
 
     try {
-      // Veritabanını güncelleme isteği
-      const response = await axios.put(BASE_URL + "persons/" + editId, submittedData);
+      const response = await axios.put(`${BASE_URL}persons/${editId}`, submittedData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
 
       // Veritabanı güncelleme başarılı olursa yerel veriyi güncelle
       newItems[index] = response.data;
@@ -384,7 +391,7 @@ const UserListRegularPage = () => {
 
     });
     setEditedId(id);
-    setFiles([]);
+
     setView({ add: false, edit: true });
   };
 
@@ -453,16 +460,6 @@ const UserListRegularPage = () => {
     setonSearch(!onSearch)
   };
 
-  // handles ondrop function of dropzone
-  const handleDropChange = (acceptedFiles) => {
-    setFiles(
-      acceptedFiles.map((file) =>
-        Object.assign(file, {
-          preview: URL.createObjectURL(file),
-        })
-      )
-    );
-  };
 
   // Get current list, pagination
   const indexOfLastItem = currentPage * itemPerPage;
