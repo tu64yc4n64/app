@@ -43,8 +43,8 @@ const Login = () => {
 
       const token = response.data;
       if (token) {
-        localStorage.setItem("accessToken", JSON.stringify(token.access));
-        localStorage.setItem("refreshToken", JSON.stringify(token.refresh));
+        localStorage.setItem("accessToken", token.access);
+        localStorage.setItem("refreshToken", token.refresh);
         setTimeout(() => {
           const baseUrl = process.env.PUBLIC_URL ? process.env.PUBLIC_URL : "/";
           window.history.pushState(baseUrl, "auth-login", baseUrl);

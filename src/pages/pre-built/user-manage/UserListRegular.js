@@ -37,8 +37,8 @@ const BASE_URL = "https://tiosone.com/customers/api/"
 
 const UserListRegularPage = () => {
 
-  const tokenString = localStorage.getItem('accessToken')
-  const tokenn = JSON.parse(tokenString)
+  const tokenn = localStorage.getItem('accessToken')
+
   const getAllCategories = async () => {
     try {
       const response = await axios.get(BASE_URL + "categories?type=person", {
@@ -68,8 +68,8 @@ const UserListRegularPage = () => {
 
   const [data, setData] = useState([]);
   const refreshAccessToken = async () => {
-    const refreshTokenString = localStorage.getItem('refreshToken');
-    const refreshToken = JSON.parse(refreshTokenString)
+    const refreshToken = localStorage.getItem('refreshToken');
+
 
     if (!refreshToken) {
       console.error('No refresh token found in local storage.');
@@ -85,12 +85,12 @@ const UserListRegularPage = () => {
         }
       });
       const newAccessToken = response.data.access;
-      localStorage.setItem('accessToken', newAccessToken);
+      localStorage.setItem('accessToken', JSON.stringify(newAccessToken));
       return newAccessToken;
     } catch (error) {
       if (error.response && error.response.status === 401) {
         console.error("Refresh token is invalid or expired. User needs to re-login.");
-
+        window.location.href = '/auth-login';
       } else {
         console.error("Error refreshing access token", error);
       }
@@ -98,11 +98,9 @@ const UserListRegularPage = () => {
     }
   };
 
-
-
   const getAllUsers = async () => {
-    let accessTokenString = localStorage.getItem('accessToken');
-    let accessToken = JSON.parse(accessTokenString)
+    let accessToken = localStorage.getItem('accessToken');
+
 
     try {
       const response = await axios.get(BASE_URL + "persons/", {
@@ -269,8 +267,8 @@ const UserListRegularPage = () => {
 
 
   const onFormSubmit = async (form) => {
-    let accessTokenString = localStorage.getItem('accessToken');
-    let accessToken = JSON.parse(accessTokenString);
+    let accessToken = localStorage.getItem('accessToken');
+
     const { first_name, last_name, job_title, email, phone, address_line, birthday } = form;
 
     let submittedData = {
@@ -278,19 +276,19 @@ const UserListRegularPage = () => {
       last_name: last_name,
       //  company: "",
       //  department: "",
-      //  job_title: "",
-      //  birthday: "",
-      //  categories: [],
-      //  tags: [],
-      //  country: "",
-      //  city: "",
-      //  district: "",
-      //  address_line: "",
-      //  phone: "",
+      job_title: job_title,
+      // birthday: birthday,
+      categories: [],
+      tags: [],
+      country: "Türkiye",
+      city: "Uşak",
+      district: "Merkez",
+      address_line: address_line,
+      phone: phone,
       email: email,
-      // website: "",
+      website: "",
       is_active: true,
-      // customer_representatives: [1],
+      //customer_representatives: [],
       added_by: [1]
     };
 
@@ -313,8 +311,8 @@ const UserListRegularPage = () => {
 
 
   const onEditSubmit = async () => {
-    let accessTokenString = localStorage.getItem('accessToken');
-    let accessToken = JSON.parse(accessTokenString);
+    let accessToken = localStorage.getItem('accessToken');
+
     let submittedData;
     let newItems = data;
     let index = newItems.findIndex((item) => item.id === editId);
@@ -424,8 +422,7 @@ const UserListRegularPage = () => {
 
   // function to delete a product
   const deleteProduct = async (id) => {
-    let accessTokenString = localStorage.getItem('accessToken');
-    let accessToken = JSON.parse(accessTokenString);
+    let accessToken = localStorage.getItem('accessToken');
 
     try {
       await axios.delete(`${BASE_URL}persons/${id}`, {

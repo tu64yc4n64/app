@@ -1,7 +1,6 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'https://api.example.com',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -39,7 +38,7 @@ api.interceptors.response.use(
                 return api(originalRequest);
             } else {
                 // Token yenilenemezse, kullanıcıyı logout et
-                window.location.href = '/login';
+                window.location.href = '/auth-login';
             }
         }
         return Promise.reject(error);

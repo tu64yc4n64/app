@@ -31,8 +31,9 @@ const Homepage = () => {
     const accessToken = localStorage.getItem("accessToken");
     const refreshToken = localStorage.getItem("refreshToken");
     if (accessToken) {
-      console.log(JSON.parse(accessToken));
-      console.log(JSON.parse(refreshToken));
+
+      console.log(accessToken);
+
     }
   }, []);
   const [sm, updateSm] = useState(false);
