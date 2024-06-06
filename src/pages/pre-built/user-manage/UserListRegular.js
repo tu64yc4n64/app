@@ -37,14 +37,15 @@ const BASE_URL = "https://tiosone.com/customers/api/"
 
 const UserListRegularPage = () => {
 
-  const tokenn = localStorage.getItem('accessToken')
+  let accessToken = localStorage.getItem('accessToken');
+  console.log(accessToken)
 
   const getAllCategories = async () => {
     try {
       const response = await axios.get(BASE_URL + "categories?type=person", {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${tokenn}`
+          Authorization: `Bearer ${accessToken}`
         }
       });;
       setCategories(response.data);
@@ -57,7 +58,7 @@ const UserListRegularPage = () => {
       const response = await axios.get(BASE_URL + "tags?type=person", {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${tokenn}`
+          Authorization: `Bearer ${accessToken}`
         }
       });;
       setTags(response.data);
@@ -85,7 +86,7 @@ const UserListRegularPage = () => {
         }
       });
       const newAccessToken = response.data.access;
-      localStorage.setItem('accessToken', JSON.stringify(newAccessToken));
+      localStorage.setItem('accessToken', newAccessToken);
       return newAccessToken;
     } catch (error) {
       if (error.response && error.response.status === 401) {
@@ -113,10 +114,10 @@ const UserListRegularPage = () => {
       setOriginalData(response.data);
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        // Token geçersiz veya süresi dolmuş
+
         accessToken = await refreshAccessToken();
         if (accessToken) {
-          // Yeni token ile tekrar dene
+
           try {
             const response = await axios.get(BASE_URL + "persons/", {
               headers: {
