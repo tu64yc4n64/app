@@ -5,7 +5,10 @@ import { UserContextProvider } from "../pages/pre-built/user-manage/UserContext"
 
 import Homepage from "../pages/Homepage";
 import OfferListPage from "../pages/pre-built/offers/offersList";
+import SalesListPage from "../pages/pre-built/sales/salesList";
 import NewOffersPage from "../pages/pre-built/offers/newOffersPage";
+import NewSalesPage from "../pages/pre-built/sales/newSalesPage";
+import NewUserPage from "../pages/pre-built/users/UserListPage";
 import Crypto from "../pages/Crypto";
 import Analytics from "../pages/Analytics";
 import Invest from "../pages/Invest";
@@ -139,6 +142,8 @@ const Router = () => {
         <Route index element={<Homepage />}></Route>
         <Route path="firmalar" element={<CompanyList />}></Route>
         <Route path="teklifler" element={<OfferListPage />}></Route>
+        <Route path="satislar" element={<SalesListPage />}></Route>
+        <Route path="kullanicilar" element={<NewUserPage />}></Route>
 
         <Route path="crypto" element={<Crypto />}></Route>
         <Route path="analytics" element={<Analytics />}></Route>
@@ -152,6 +157,7 @@ const Router = () => {
         <Route element={<UserContextProvider />} >
           <Route path="kisiler" element={<UserListRegular />}></Route>
           <Route path="teklif-olustur" element={<NewOffersPage />}></Route>
+          <Route path="satis-olustur" element={<NewSalesPage />}></Route>
           <Route path="user-list-compact" element={<UserListCompact />}></Route>
           <Route path="user-contact-card" element={<UserContactCard />}></Route>
           <Route path="user-details-regular/:userId" element={<UserDetails />}></Route>
@@ -169,7 +175,7 @@ const Router = () => {
         <Route path="transaction-basic" element={<TransListBasic />}></Route>
         <Route path="transaction-crypto" element={<TransListCrypto />}></Route>
         <Route element={<ProductContextProvider />}>
-          <Route path="product-list" element={<ProductList />}></Route>
+          <Route path="urunler" element={<ProductList />}></Route>
           <Route path="product-card" element={<ProductCard />}></Route>
           <Route path="product-details/:productId" element={<ProductDetails />}></Route>
         </Route>

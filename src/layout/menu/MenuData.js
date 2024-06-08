@@ -25,7 +25,7 @@ const menu = [
     icon: "card-view",
     text: "Ürünler",
     active: false,
-    link: "/",
+    link: "/urunler",
 
   },
   {
@@ -39,7 +39,7 @@ const menu = [
     icon: "card-view",
     text: "Satışlar",
     active: false,
-    link: "/",
+    link: "/satislar",
 
   },
   {
@@ -64,7 +64,7 @@ const menu = [
     icon: "file-docs",
     text: "Kullanıcılar",
     active: false,
-    link: "/",
+    link: "/kullanicilar",
 
   },
   {

@@ -265,7 +265,7 @@ const UserListRegularPage = () => {
 
     reset({});
   };
-
+  console.log(selectedCategory)
 
   const onFormSubmit = async (form) => {
     let accessToken = localStorage.getItem('accessToken');
@@ -279,7 +279,7 @@ const UserListRegularPage = () => {
       //  department: "",
       job_title: job_title,
       // birthday: birthday,
-      categories: [],
+      categories: selectedCategory[0].value,
       tags: [],
       country: "Türkiye",
       city: "Uşak",
@@ -477,7 +477,7 @@ const UserListRegularPage = () => {
           <BlockBetween>
             <BlockHeadContent>
               <BlockTitle>Kişiler</BlockTitle>
-              <div className="nk-block-des text-soft"><p>Toplam 450 kişi</p></div>
+              <div className="nk-block-des text-soft"><p>Toplam {currentItems.length} kişi</p></div>
 
             </BlockHeadContent>
 
@@ -1241,7 +1241,11 @@ const UserListRegularPage = () => {
               <Row className="g-3">
                 <Col size="6">
                   <div className="form-group">
+                    <label htmlFor="kullanici-adi" className="form-label text-soft">
 
+                      Adı
+
+                    </label>
                     <div className="form-control-wrap">
                       <input
                         type="text"
@@ -1258,7 +1262,11 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label htmlFor="kullanici-adi" className="form-label text-soft">
 
+                      Soyadı
+
+                    </label>
                     <div className="form-control-wrap">
                       <input
                         type="text"
@@ -1275,7 +1283,11 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label htmlFor="kullanici-adi" className="form-label text-soft">
 
+                      Ünvan
+
+                    </label>
                     <div className="form-control-wrap">
                       <input
                         type="text"
@@ -1290,6 +1302,11 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label htmlFor="kullanici-adi" className="form-label text-soft">
+
+                      Email Adresi
+
+                    </label>
                     <div className="form-control-wrap">
                       <input
                         type="text"

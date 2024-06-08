@@ -31,14 +31,12 @@ const UserDetailsPage = () => {
   const [conversation, setConversation] = useState(meetings);
   const currentItems = conversation
   const [data] = contextData;
-  const [sm, updateSm] = useState(false);
+
   const [sideBar, setSidebar] = useState(false);
   const [itemPerPage, setItemPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState();
-  const [noteData, setNoteData] = useState(notes);
-  const [addNoteModal, setAddNoteModal] = useState(false);
-  const [addNoteText, setAddNoteText] = useState("");
+
   const [modal, setModal] = useState({
     edit: false,
     add: false,
@@ -87,25 +85,6 @@ const UserDetailsPage = () => {
     sideBar ? document.body.classList.add("toggle-shown") : document.body.classList.remove("toggle-shown");
   }, [sideBar])
 
-  // delete a note
-  const deleteNote = (id) => {
-    let defaultNote = noteData;
-    defaultNote = defaultNote.filter((item) => item.id !== id);
-    setNoteData(defaultNote);
-  };
-
-  const submitNote = () => {
-    let submitData = {
-      id: Math.random(),
-      text: addNoteText,
-      date: `${monthNames[todaysDate.getMonth()]} ${todaysDate.getDate()}, ${todaysDate.getFullYear()}`,
-      time: `${currentTime()}`,
-      company: "Softnio",
-    };
-    setNoteData([...noteData, submitData]);
-    setAddNoteModal(false);
-    setAddNoteText("");
-  };
   const [onSearchText, setSearchText] = useState("");
   useEffect(() => {
     if (onSearchText !== "") {

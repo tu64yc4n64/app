@@ -1,45 +1,209 @@
 import React, { useState, useEffect } from "react";
 import Head from "../../../layout/head/Head";
 import Content from "../../../layout/content/Content";
-import ProductH from "../../../images/product/h.png";
-import Dropzone from "react-dropzone";
+import ProductH from "../../../images/avatar/a-sm.jpg"
 import SimpleBar from "simplebar-react";
+import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { RSelect } from "../../../components/Component";
+import DatePicker from "react-datepicker";
+import api from '../../../api/api';
+import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup, Modal, ModalBody, Badge, Label, Input } from "reactstrap";
+
 import {
   Block,
-  BlockHead,
-  BlockTitle,
-  BlockBetween,
-  BlockHeadContent,
   BlockDes,
+  BlockHead,
+  BlockHeadContent,
+  BlockTitle,
   Icon,
-  Row,
-  Col,
   Button,
-  DataTableHead,
+  Col,
+  BlockBetween,
   DataTableBody,
+  DataTableHead,
   DataTableRow,
   DataTableItem,
+  Row,
   PaginationComponent,
-} from "../../../components/Component";
-import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, Badge } from "reactstrap";
-import { productData, categoryOptions } from "./ProductData";
-import { useForm } from "react-hook-form";
-import { Modal, ModalBody } from "reactstrap";
-import { RSelect } from "../../../components/Component";
+  DataTable
 
-const ProductList = () => {
-  const [data, setData] = useState(productData);
+} from "../../../components/Component";
+
+import axios from "axios";
+
+
+const BASE_URL = "https://tiosone.com/products/api/"
+
+const UserListRegularPage = () => {
+
+  let accessToken = localStorage.getItem('accessToken');
+  console.log(accessToken)
+
+  const getAllCategories = async () => {
+    try {
+      const response = await axios.get(BASE_URL + "categories?type=person", {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        }
+      });;
+      setCategories(response.data);
+    } catch (error) {
+      console.error("There was an error fetching the data!", error);
+    }
+  };
+  const getAllTags = async () => {
+    try {
+      const response = await axios.get(BASE_URL + "tags?type=person", {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`
+        }
+      });;
+      setTags(response.data);
+    } catch (error) {
+      console.error("There was an error fetching the data!", error);
+    }
+  };
+
+  const [data, setData] = useState([]);
+  const refreshAccessToken = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+
+
+    if (!refreshToken) {
+      console.error('No refresh token found in local storage.');
+      return null;
+    }
+
+    try {
+      const response = await axios.post("https://tiosone.com/api/token/refresh/", {
+        refresh: refreshToken
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const newAccessToken = response.data.access;
+      localStorage.setItem('accessToken', newAccessToken);
+      return newAccessToken;
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        console.error("Refresh token is invalid or expired. User needs to re-login.");
+        window.location.href = '/auth-login';
+      } else {
+        console.error("Error refreshing access token", error);
+      }
+      return null;
+    }
+  };
+
+  const getAllUsers = async () => {
+    let accessToken = localStorage.getItem('accessToken');
+
+
+    try {
+      const response = await axios.get(BASE_URL + "persons/", {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      setData(response.data);
+      setOriginalData(response.data);
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+
+        accessToken = await refreshAccessToken();
+        if (accessToken) {
+
+          try {
+            const response = await axios.get(BASE_URL + "persons/", {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+              }
+            });
+            setData(response.data);
+            setOriginalData(response.data);
+          } catch (retryError) {
+            console.error("Retry error after refreshing token", retryError);
+          }
+        }
+      } else {
+        console.error("There was an error fetching the data!", error);
+      }
+    }
+  };
+  useEffect(() => {
+    getAllUsers()
+
+  }, [])
+  const [categories, setCategories] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState([]);
+  const [selectedTag, setSelectedTag] = useState([]);
+  const formattedCategories = categories.map(category => ({
+    value: category.id,
+    label: category.name
+  }));
+  const formattedTags = tags.map(tag => ({
+    value: tag.id,
+    label: tag.name
+  }));
+  const handleCategoryChange = (selectedOption) => {
+    setSelectedCategory(selectedOption);
+  };
+  const handleTagChange = (selectedOption) => {
+    setSelectedTag(selectedOption);
+  };
+  useEffect(() => {
+    getAllCategories()
+
+  }, [])
+  useEffect(() => {
+    getAllTags()
+
+  }, [])
   const [sm, updateSm] = useState(false);
+  const [tablesm, updateTableSm] = useState(false);
+  const [startDate, setStartDate] = useState();
+  const [itemPerPage, setItemPerPage] = useState(10);
+  const [sort, setSortState] = useState("");
+  const [onSearch, setonSearch] = useState(true);
+  const sortFunc = (params) => {
+    let defaultData = data;
+    if (params === "asc") {
+      let sortedData = defaultData.sort((a, b) => a.name.localeCompare(b.name));
+      setData([...sortedData]);
+    } else if (params === "dsc") {
+      let sortedData = defaultData.sort((a, b) => b.name.localeCompare(a.name));
+      setData([...sortedData]);
+    }
+  };
+  const durum = [
+    { value: true, label: 'Aktif' },
+    { value: false, label: 'Pasif' },
+  ];
   const [formData, setFormData] = useState({
-    name: "",
-    img: null,
-    sku: "",
-    price: 0,
-    salePrice: 0,
-    stock: 0,
-    category: [],
-    fav: false,
-    check: false,
+    first_name: "",
+    last_name: "",
+    company: "",
+    department: "",
+    job_title: "",
+    birthday: "",
+    categories: [],
+    tags: [],
+    country: "",
+    city: "",
+    district: "",
+    address_line: "",
+    phone: "",
+    email: "",
+    website: "",
+    is_active: true,
+    customer_representatives: []
   });
   const [editId, setEditedId] = useState();
   const [view, setView] = useState({
@@ -49,23 +213,23 @@ const ProductList = () => {
   });
   const [onSearchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemPerPage] = useState(7);
-  const [files, setFiles] = useState([]);
+
+
 
   //scroll off when sidebar shows
   useEffect(() => {
     view.add ? document.body.classList.add("toggle-shown") : document.body.classList.remove("toggle-shown");
   }, [view.add])
 
-  // Changing state value when searching name
+  const [originalData, setOriginalData] = useState([]);
   useEffect(() => {
     if (onSearchText !== "") {
-      const filteredObject = productData.filter((item) => {
-        return item.sku.toLowerCase().includes(onSearchText.toLowerCase());
+      const filteredObject = data.filter((item) => {
+        return item.first_name.toLowerCase().includes(onSearchText.toLowerCase());
       });
       setData([...filteredObject]);
     } else {
-      setData([...productData]);
+      setData([...originalData]);
     }
   }, [onSearchText]);
 
@@ -76,42 +240,80 @@ const ProductList = () => {
   };
 
   const resetForm = () => {
+    setSelectedCategory([])
+    setSelectedTag([])
+    setStartDate()
     setFormData({
-      name: "",
-      img: null,
-      sku: "",
-      price: 0,
-      salePrice: 0,
-      stock: 0,
-      category: [],
-      fav: false,
-      check: false,
+      first_name: "",
+      last_name: "",
+      company: "",
+      department: "",
+      job_title: "",
+      birthday: "",
+      categories: [],
+      tags: [],
+      country: "",
+      city: "",
+      district: "",
+      address_line: "",
+      phone: "",
+      email: "",
+      website: "",
+      is_active: true,
+      customer_representatives: []
     });
+
     reset({});
   };
+  console.log(selectedCategory)
 
-  const onFormSubmit = (form) => {
-    const { title, price, salePrice, sku, stock } = form;
-    
+  const onFormSubmit = async (form) => {
+    let accessToken = localStorage.getItem('accessToken');
+
+    const { first_name, last_name, job_title, email, phone, address_line, birthday } = form;
+
     let submittedData = {
-      id: data.length + 1,
-      name: title,
-      img: files.length > 0 ? files[0].preview : ProductH,
-      sku: sku,
-      price: price,
-      salePrice: salePrice,
-      stock: stock,
-      category: formData.category,
-      fav: false,
-      check: false,
+      first_name: first_name,
+      last_name: last_name,
+      //  company: "",
+      //  department: "",
+      job_title: job_title,
+      // birthday: birthday,
+      categories: selectedCategory[0].value,
+      tags: [],
+      country: "Türkiye",
+      city: "Uşak",
+      district: "Merkez",
+      address_line: address_line,
+      phone: phone,
+      email: email,
+      website: "",
+      is_active: true,
+      //customer_representatives: [],
+      added_by: [1]
     };
-    setData([submittedData, ...data]);
-    setView({ open: false });
-    setFiles([]);
-    resetForm();
+
+    try {
+      const response = await axios.post(BASE_URL + "persons/", submittedData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      setData([response.data, ...data]);
+      setView({ open: false });
+
+      resetForm();
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
   };
 
-  const onEditSubmit = () => {
+
+
+  const onEditSubmit = async () => {
+    let accessToken = localStorage.getItem('accessToken');
+
     let submittedData;
     let newItems = data;
     let index = newItems.findIndex((item) => item.id === editId);
@@ -119,44 +321,76 @@ const ProductList = () => {
     newItems.forEach((item) => {
       if (item.id === editId) {
         submittedData = {
-          id: editId,
-          name: formData.name,
-          img: files.length > 0 ? files[0].preview : item.img,
-          sku: formData.sku,
-          price: formData.price,
-          salePrice: formData.salePrice,
-          stock: formData.stock,
-          category: formData.category,
-          fav: false,
-          check: false,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          // company: formData.company,
+          // department: formData.department,
+          // job_title: formData.job_title,
+          //birthday: new Date(formData.birthday),
+          // categories: formData.categories,
+          //  tags: formData.tags,
+          // country: formData.country,
+          //  city: formData.city,
+          // district: formData.district,
+          // address_line: formData.address_line,
+          // phone: formData.phone,
+          email: formData.email,
+          //  website: formData.website,
+          is_active: formData.is_active,
+          // customer_representatives: formData.customer_representatives,
+          added_by: [1]
         };
       }
     });
-    newItems[index] = submittedData;
-    //setData(newItems);
-    resetForm();
-    setView({ edit: false, add: false });
+
+    try {
+      const response = await axios.put(`${BASE_URL}persons/${editId}`, submittedData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+
+      // Veritabanı güncelleme başarılı olursa yerel veriyi güncelle
+      newItems[index] = response.data;
+      setData(newItems);
+      resetForm();
+      setView({ edit: false, add: false });
+    } catch (error) {
+      console.error('Veritabanını güncelleme sırasında hata oluştu:', error);
+    }
   };
 
-  // function that loads the want to editted data
+
   const onEditClick = (id) => {
     data.forEach((item) => {
       if (item.id === id) {
+
         setFormData({
-          name: item.name,
-          img: item.img,
-          sku: item.sku,
-          price: item.price,
-          salePrice: item.salePrice,
-          stock: item.stock,
-          category: item.category,
-          fav: false,
-          check: false,
+          first_name: item.first_name,
+          last_name: item.last_name,
+          company: item.company,
+          department: item.department,
+          job_title: item.job_title,
+          birthday: new Date(item.birthday),
+          categories: item.categories,
+          tags: item.tags,
+          country: item.country,
+          city: item.city,
+          district: item.district,
+          address_line: item.address_line,
+          phone: item.phone,
+          email: item.email,
+          website: item.website,
+          is_active: true,
+          customer_representatives: item.customer_representatives,
+
         });
       }
+
     });
     setEditedId(id);
-    setFiles([]);
+
     setView({ add: false, edit: true });
   };
 
@@ -188,11 +422,23 @@ const ProductList = () => {
   };
 
   // function to delete a product
-  const deleteProduct = (id) => {
-    let defaultData = data;
-    defaultData = defaultData.filter((item) => item.id !== id);
-    setData([...defaultData]);
+  const deleteProduct = async (id) => {
+    let accessToken = localStorage.getItem('accessToken');
+
+    try {
+      await axios.delete(`${BASE_URL}persons/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      let updatedData = data.filter((item) => item.id !== id);
+      setData([...updatedData]);
+    } catch (error) {
+      console.error("There was an error deleting the product!", error);
+    }
   };
+
 
   // function to delete the seletected item
   const selectorDeleteProduct = () => {
@@ -202,715 +448,979 @@ const ProductList = () => {
   };
 
   // toggle function to view product details
+
   const toggle = (type) => {
     setView({
       edit: type === "edit" ? true : false,
       add: type === "add" ? true : false,
       details: type === "details" ? true : false,
     });
+    setonSearch(!onSearch)
   };
 
-  // handles ondrop function of dropzone
-  const handleDropChange = (acceptedFiles) => {
-    setFiles(
-      acceptedFiles.map((file) =>
-        Object.assign(file, {
-          preview: URL.createObjectURL(file),
-        })
-      )
-    );
-  };
 
   // Get current list, pagination
   const indexOfLastItem = currentPage * itemPerPage;
   const indexOfFirstItem = indexOfLastItem - itemPerPage;
   const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
+
   // Change Page
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm();
-  return <>
-    <Head title="Product List"></Head>
-    <Content>
-      <BlockHead size="sm">
-        <BlockBetween>
-          <BlockHeadContent>
-            <BlockTitle>Products</BlockTitle>
-          </BlockHeadContent>
-          <BlockHeadContent>
-            <div className="toggle-wrap nk-block-tools-toggle">
-              <a
-                href="#more"
-                className="btn btn-icon btn-trigger toggle-expand me-n1"
+  return (
+    <>
+      <Head title="Homepage"></Head>
+      <Content>
+        <BlockHead size="sm">
+          <BlockBetween>
+            <BlockHeadContent>
+              <BlockTitle>Ürünler</BlockTitle>
+              <div className="nk-block-des text-soft"><p>Toplam {currentItems.length} ürün</p></div>
+
+            </BlockHeadContent>
+
+            <BlockHeadContent>
+              <div className="toggle-wrap nk-block-tools-toggle">
+                <a
+                  href="#more"
+                  className="btn btn-icon btn-trigger toggle-expand me-n1"
+                  onClick={(ev) => {
+                    ev.preventDefault();
+                    updateSm(!sm);
+                  }}
+                >
+                  <Icon name="more-v"></Icon>
+                </a>
+                <div className="toggle-expand-content" style={{ display: sm ? "block" : "none" }}>
+                  <ul className="nk-block-tools g-3">
+
+
+                    <li className="nk-block-tools-opt">
+                      <Button
+                        className="toggle btn btn-primary d-md-none"
+                        color="primary"
+                        onClick={() => {
+                          toggle("add");
+                        }}
+                      >
+                        Yeni Ürün Ekle
+                      </Button>
+                      <Button
+                        className="toggle d-none d-md-inline-flex"
+                        color="primary"
+                        onClick={() => {
+                          toggle("add");
+                        }}
+                      >
+
+                        <span>Yeni Ürün Ekle</span>
+                      </Button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </BlockHeadContent>
+
+          </BlockBetween>
+
+        </BlockHead>
+        <ul className="nk-block-tools gx-3" style={{ paddingBottom: "1.75rem" }}>
+          <li>
+            <div className="form-control-wrap">
+              <div className="form-icon form-icon-left">
+                <Icon name="search"></Icon>
+              </div>
+              <input
+                type="text"
+                className="form-control"
+                id="default-04"
+                placeholder="Ürünlerde ara..."
+                onChange={(e) => onFilterChange(e)}
+              />
+            </div>
+          </li>
+          <li>
+            <UncontrolledDropdown>
+              <DropdownToggle
+                color="transparent"
+                className="dropdown-toggle dropdown-indicator btn btn-outline-light btn-white"
+              >
+                Kategori
+              </DropdownToggle>
+              <DropdownMenu end>
+                <ul className="link-list-opt no-bdr">
+
+                </ul>
+              </DropdownMenu>
+            </UncontrolledDropdown>
+          </li>
+          <li>
+            <UncontrolledDropdown>
+              <DropdownToggle
+                color="transparent"
+                className="dropdown-toggle dropdown-indicator btn btn-outline-light btn-white"
+              >
+                Etiket
+              </DropdownToggle>
+              <DropdownMenu end>
+                <ul className="link-list-opt no-bdr">
+
+                </ul>
+              </DropdownMenu>
+            </UncontrolledDropdown>
+          </li>
+
+
+        </ul>
+        <Block>
+          <DataTable className="card-stretch">
+            <Card className="card-bordered">
+
+              <div className="card-inner-group">
+                <div className="card-inner p-0">
+                  <DataTableBody>
+                    <DataTableHead>
+                      <DataTableRow className="nk-tb-col-check">
+                        <div className="custom-control custom-control-sm custom-checkbox notext">
+                          <input
+                            type="checkbox"
+                            className="custom-control-input"
+                            id="uid_1"
+                            onChange={(e) => selectorCheck(e)}
+                          />
+                          <label className="custom-control-label" htmlFor="uid_1"></label>
+                        </div>
+                      </DataTableRow>
+                      <DataTableRow >
+                        <span>Türü</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>Ürün Adı</span>
+                      </DataTableRow>
+                      <DataTableRow>
+                        <span>Açıklama</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>Kategori</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>Etiket</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>Alış Fiyatı</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>Satış Fiyatı</span>
+                      </DataTableRow>
+                      <DataTableRow size="md">
+                        <span>O. Tarihi</span>
+                      </DataTableRow>
+
+                      <DataTableRow className="nk-tb-col-tools">
+                        <ul className="nk-tb-actions gx-1 my-n1">
+                          <li className="me-n1">
+                            <UncontrolledDropdown>
+                              <DropdownToggle
+                                tag="a"
+                                href="#toggle"
+                                onClick={(ev) => ev.preventDefault()}
+                                className="dropdown-toggle btn btn-icon btn-trigger"
+                              >
+                                <Icon name="more-h"></Icon>
+                              </DropdownToggle>
+                              <DropdownMenu end>
+                                <ul className="link-list-opt no-bdr">
+                                  <li>
+                                    <DropdownItem tag="a" href="#edit" onClick={(ev) => ev.preventDefault()}>
+                                      <Icon name="edit"></Icon>
+                                      <span>Edit Selected</span>
+                                    </DropdownItem>
+                                  </li>
+                                  <li>
+                                    <DropdownItem
+                                      tag="a"
+                                      href="#remove"
+                                      onClick={(ev) => {
+                                        ev.preventDefault();
+                                        selectorDeleteProduct();
+                                      }}
+                                    >
+                                      <Icon name="trash"></Icon>
+                                      <span>Remove Selected</span>
+                                    </DropdownItem>
+                                  </li>
+                                  <li>
+                                    <DropdownItem tag="a" href="#stock" onClick={(ev) => ev.preventDefault()}>
+                                      <Icon name="bar-c"></Icon>
+                                      <span>Update Stock</span>
+                                    </DropdownItem>
+                                  </li>
+                                  <li>
+                                    <DropdownItem tag="a" href="#price" onClick={(ev) => ev.preventDefault()}>
+                                      <Icon name="invest"></Icon>
+                                      <span>Update Price</span>
+                                    </DropdownItem>
+                                  </li>
+                                </ul>
+                              </DropdownMenu>
+                            </UncontrolledDropdown>
+                          </li>
+                        </ul>
+                      </DataTableRow>
+                    </DataTableHead>
+                    {currentItems.length > 0
+                      ? currentItems.reverse().map((item) => {
+
+                        return (
+                          <DataTableItem key={item.id}>
+                            <DataTableRow className="nk-tb-col-check">
+                              <div className="custom-control custom-control-sm custom-checkbox notext">
+                                <input
+                                  type="checkbox"
+                                  className="custom-control-input"
+                                  defaultChecked={item.check}
+                                  id={item.id + "uid1"}
+                                  key={Math.random()}
+                                  onChange={(e) => onSelectChange(e, item.id)}
+                                />
+                                <label className="custom-control-label" htmlFor={item.id + "uid1"}></label>
+                              </div>
+                            </DataTableRow>
+                            <DataTableRow>
+
+                              <span className="badge bg-outline-secondary me-1">
+                                Hizmet
+                              </span>
+
+                            </DataTableRow>
+                            <DataTableRow>
+                              <Link to={`${process.env.PUBLIC_URL}/user-details-regular/${item.id}`}>
+                                <span className="tb-product" style={{ flexDirection: "column", display: "flex", alignItems: "start" }}>
+
+                                  <span className="title">{item.name}</span>
+
+                                </span>
+                              </Link>
+                            </DataTableRow>
+
+                            <DataTableRow size="md">
+                              <span className="tb-sub">{item.description}</span>
+                            </DataTableRow>
+                            <DataTableRow>
+                              {item.categories && item.categories.length > 0 && item.categories.map((category, index) => (
+                                <span key={index} className="badge bg-outline-secondary me-1">
+                                  {category.label}
+                                </span>
+                              ))}
+                            </DataTableRow>
+                            <DataTableRow>
+                              {item.tags && item.tags.length > 0 && item.tags.map((tag, index) => (
+                                <span key={index} className="badge bg-outline-secondary me-1">
+                                  {tag.label}
+                                </span>
+                              ))}
+                            </DataTableRow>
+                            <DataTableRow size="md">
+                              <span className="tb-sub">{item.purchase_price}</span>
+                            </DataTableRow>
+                            <DataTableRow size="md">
+                              <span className="tb-sub">{item.sale_price}</span>
+                            </DataTableRow>
+                            <DataTableRow size="md">
+                              <span className="tb-sub">Oluşturma Tarihi</span>
+                            </DataTableRow>
+
+                            <DataTableRow className="nk-tb-col-tools">
+                              <ul className="nk-tb-actions gx-1 my-n1">
+                                <li className="me-n1">
+                                  <UncontrolledDropdown>
+                                    <DropdownToggle
+                                      tag="a"
+                                      href="#more"
+                                      onClick={(ev) => ev.preventDefault()}
+                                      className="dropdown-toggle btn btn-icon btn-trigger"
+                                    >
+                                      <Icon name="more-h"></Icon>
+                                    </DropdownToggle>
+                                    <DropdownMenu end>
+                                      <ul className="link-list-opt no-bdr">
+                                        <li>
+                                          <DropdownItem
+                                            tag="a"
+                                            href="#edit"
+                                            onClick={(ev) => {
+                                              ev.preventDefault();
+                                              onEditClick(item.id);
+                                              toggle("edit");
+                                            }}
+                                          >
+                                            <Icon name="edit"></Icon>
+                                            <span>Ürünü Düzenle</span>
+                                          </DropdownItem>
+                                        </li>
+                                        <li>
+                                          <DropdownItem
+                                            tag="a"
+                                            href="#view"
+                                            onClick={(ev) => {
+                                              ev.preventDefault();
+                                              onEditClick(item.id);
+                                              toggle("details");
+                                            }}
+                                          >
+                                            <Icon name="eye"></Icon>
+                                            <span>Ürünü Görüntüle</span>
+                                          </DropdownItem>
+                                        </li>
+                                        <li>
+                                          <DropdownItem
+                                            tag="a"
+                                            href="#remove"
+                                            onClick={(ev) => {
+                                              ev.preventDefault();
+                                              deleteProduct(item.id);
+                                            }}
+                                          >
+                                            <Icon name="trash"></Icon>
+                                            <span>Ürünü Sil</span>
+                                          </DropdownItem>
+                                        </li>
+                                      </ul>
+                                    </DropdownMenu>
+                                  </UncontrolledDropdown>
+                                </li>
+                              </ul>
+                            </DataTableRow>
+                          </DataTableItem>
+                        );
+                      })
+                      : null}
+                  </DataTableBody>
+                  <div className="card-inner">
+                    {data.length > 0 ? (
+                      <PaginationComponent
+                        itemPerPage={itemPerPage}
+                        totalItems={data.length}
+                        paginate={paginate}
+                        currentPage={currentPage}
+                      />
+                    ) : (
+                      <div className="text-center">
+                        <span className="text-silent">Herhangi bir müşteri bulunamadı</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </DataTable>
+        </Block>
+        <Modal isOpen={view.edit} toggle={() => onFormCancel()} className="modal-dialog-centered" size="lg">
+          <ModalBody>
+            <a href="#cancel" className="close">
+              {" "}
+              <Icon
+                name="cross-sm"
                 onClick={(ev) => {
                   ev.preventDefault();
-                  updateSm(!sm);
+                  onFormCancel();
                 }}
-              >
-                <Icon name="more-v"></Icon>
-              </a>
-              <div className="toggle-expand-content" style={{ display: sm ? "block" : "none" }}>
-                <ul className="nk-block-tools g-3">
-                  <li>
-                    <div className="form-control-wrap">
-                      <div className="form-icon form-icon-right">
-                        <Icon name="search"></Icon>
+              ></Icon>
+            </a>
+            <div className="p-2">
+              <h5 className="title">Update Product</h5>
+              <div className="mt-4">
+                <form noValidate onSubmit={handleSubmit(onEditSubmit)}>
+                  <Row className="g-3">
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Adı
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+                            {...register('first_name', {
+                              required: "Lütfen alanları boş bırakmayınız",
+                            })}
+                            value={formData.first_name}
+                            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} />
+                          {errors.first_name && <span className="invalid">{errors.first_name.message}</span>}
+                        </div>
                       </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Soyadı
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+                            {...register('last_name', {
+                              required: "Lütfen alanları boş bırakmayınız",
+                            })}
+                            value={formData.last_name}
+                            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} />
+                          {errors.last_name && <span className="invalid">{errors.last_name.message}</span>}
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Şirket
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.company}
+                            onChange={(e) => setFormData({ ...formData, company: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Bölüm
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.department}
+                            onChange={(e) => setFormData({ ...formData, department: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Ünvan
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.job_title}
+                            onChange={(e) => setFormData({ ...formData, job_title: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Doğum Günü
+                        </label>
+                        <div className="form-control-wrap">
+                          <DatePicker
+                            selected={formData.birthday}
+                            onChange={(e) => setFormData({ ...formData, birthday: e })}
+                            className="form-control"
+                            placeholderText="Doğum Tarihi"
+
+                          />
+                        </div>
+                      </div>
+                    </Col>
+
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Kategori
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={formattedCategories}
+                            value={formData.categories}
+                            onChange={(value) => setFormData({ ...formData, categories: value })}
+                          />
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Etiketler
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                            isMulti
+                            options={formattedTags}
+                            value={formData.tags}
+                            onChange={(value) => setFormData({ ...formData, tags: value })}
+                          />
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Ülke
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.country}
+                            onChange={(e) => setFormData({ ...formData, country: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Şehir
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.city}
+                            onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          İlçe
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.district}
+                            onChange={(e) => setFormData({ ...formData, district: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Adres
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.address_line}
+                            onChange={(e) => setFormData({ ...formData, address_line: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Telefon
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Email
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="regular-price">
+                          Website
+                        </label>
+                        <div className="form-control-wrap">
+                          <input
+                            type="text"
+                            className="form-control"
+
+                            value={formData.website}
+                            onChange={(e) => setFormData({ ...formData, website: e.target.value })} />
+
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Durum
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+
+                            options={durum}
+                            value={durum.find(option => option.value === formData.is_active)}
+                            onChange={(selectedOption) => setFormData({ ...formData, is_active: selectedOption.value })}
+
+                          />
+                        </div>
+                      </div>
+                    </Col>
+                    <Col lg="4">
+                      <div className="form-group">
+                        <label className="form-label" htmlFor="category">
+                          Temsilci
+                        </label>
+                        <div className="form-control-wrap">
+                          <RSelect
+                          />
+                        </div>
+                      </div>
+                    </Col>
+
+
+
+                    <Col size="12">
+                      <Button color="primary" type="submit">
+
+                        <span>Ürünü Güncelle</span>
+                      </Button>
+                    </Col>
+                  </Row>
+                </form>
+              </div>
+            </div>
+          </ModalBody>
+        </Modal>
+
+        <Modal isOpen={view.details} toggle={() => onFormCancel()} className="modal-dialog-centered" size="lg">
+          <ModalBody>
+            <a href="#cancel" className="close">
+              {" "}
+              <Icon
+                name="cross-sm"
+                onClick={(ev) => {
+                  ev.preventDefault();
+                  onFormCancel();
+                }}
+              ></Icon>
+            </a>
+            <div className="nk-modal-head">
+              <h4 className="nk-modal-title title">
+                Ürün Bilgileri <small className="text-primary"></small>
+              </h4>
+
+            </div>
+            <div className="nk-tnx-details mt-sm-3">
+              <Row className="gy-3">
+                <Col lg={4}>
+                  <span className="sub-text">Adı</span>
+                  <span className="caption-text">{formData.first_name}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Soyadı</span>
+                  <span className="caption-text">{formData.last_name}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Şirket</span>
+                  <span className="caption-text">{formData.company}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Departman</span>
+                  <span className="caption-text">{formData.department}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Ünvan</span>
+                  <span className="caption-text">{formData.job_title}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Doğum Günü</span>
+                  <span className="caption-text">{new Date(formData.birthday).toLocaleDateString('tr-TR')}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Kategori</span>
+                  <span className="caption-text">
+                    {formData.categories.map((item, index) => (
+                      <span key={index} className="badge bg-outline-secondary me-1">
+                        {item.label}
+                      </span>
+                    ))}
+                  </span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Etiket</span>
+                  <span className="caption-text">
+                    {formData.tags.map((item, index) => (
+                      <span key={index} className="badge bg-outline-secondary me-1">
+                        {item.label}
+                      </span>
+                    ))}
+                  </span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Ülke</span>
+                  <span className="caption-text">{formData.country}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Şehir</span>
+                  <span className="caption-text">{formData.city}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">İlçe</span>
+                  <span className="caption-text">{formData.district}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Adres</span>
+                  <span className="caption-text">{formData.address_line}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Telefon</span>
+                  <span className="caption-text">{formData.phone}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">E-mail</span>
+                  <span className="caption-text">{formData.email}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Website</span>
+                  <span className="caption-text">{formData.website}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Durum</span>
+                  <span className="caption-text">{formData.is_active ? "Aktif" : "Pasif"}</span>
+                </Col>
+                <Col lg={4}>
+                  <span className="sub-text">Temsilci</span>
+                  <span className="caption-text">
+                    {formData.customer_representatives.map((item, index) => (
+                      <span key={index} className="badge bg-outline-secondary me-1">
+                        {item}
+                      </span>
+                    ))}
+                  </span>
+                </Col>
+
+              </Row>
+            </div>
+          </ModalBody>
+        </Modal>
+
+        <SimpleBar
+          className={`nk-add-product toggle-slide toggle-slide-right toggle-screen-any ${view.add ? "content-active" : ""
+            }`}
+        >
+          <BlockHead>
+            <BlockHeadContent>
+              <BlockTitle tag="h5">Yeni Ürün Ekle</BlockTitle>
+              <BlockDes>
+                <p>Envanterinize Yeni Ürün Ekleyin</p>
+              </BlockDes>
+            </BlockHeadContent>
+          </BlockHead>
+          <Block>
+            <form onSubmit={handleSubmit(onFormSubmit)}>
+              <Row className="g-3">
+                <Col size="12">
+                  <div className="form-group">
+                    <label htmlFor="urun-adi" className="form-label text-soft">
+
+                      Ürün Adı
+
+                    </label>
+                    <div className="form-control-wrap">
+                      <Input
+                        type="text"
+                        id="urun-adi"
+                        className="form-control"
+                        {...register('first_name', {
+                          required: "Lütfen boş bıraklın alanları doldurunuz.",
+                        })}
+                        placeholder="Ürün Adı"
+                        value={formData.first_name}
+                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} />
+                      {errors.first_name && <span className="invalid">{errors.first_name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="12">
+                  <div className="form-group">
+                    <label htmlFor="aciklama" className="form-label text-soft">
+
+                      Açıklama
+
+                    </label>
+                    <div className="form-control-wrap">
+                      <textarea
+                        type="text"
+                        id="aciklama"
+                        className="form-control"
+                        {...register('first_name', {
+                          required: "Lütfen boş bıraklın alanları doldurunuz.",
+                        })}
+                        placeholder="Açıklama"
+                        value={formData.first_name}
+                        onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} />
+                      {errors.first_name && <span className="invalid">{errors.first_name.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="6">
+                  <div className="form-group">
+                    <label className="form-label text-soft">
+
+                      Kategori
+
+                    </label>
+                    <div className="form-control-wrap">
+                      <RSelect
+                        name="category"
+                        isMulti
+                        placeholder="Kategori"
+                        options={formattedCategories}
+                        onChange={(selectedOption) => handleCategoryChange(selectedOption)}
+                        value={selectedCategory}
+
+                      />
+
+                    </div>
+                  </div>
+                </Col>
+                <Col size="6">
+                  <div className="form-group">
+                    <label className="form-label text-soft">
+
+                      Etiket
+
+                    </label>
+                    <div className="form-control-wrap">
+                      <RSelect
+                        name="tag"
+                        isMulti
+                        placeholder="Etiket"
+                        options={formattedTags}
+                        onChange={(selectedOption) => handleTagChange(selectedOption)}
+                        value={selectedTag} />
+                    </div>
+                  </div>
+                </Col>
+                <BlockDes>
+                  <h6 className="mt-3">
+
+                    Fiyatlandırma
+                  </h6>
+                </BlockDes>
+
+
+
+                <Col size="6">
+                  <div className="form-group">
+                    <label htmlFor="alis" className="form-label text-soft">
+
+                      Alış Fiyatı (KDV Dahil)
+
+                    </label>
+                    <div className="form-control-wrap">
                       <input
                         type="text"
                         className="form-control"
-                        id="default-04"
-                        placeholder="Quick search by SKU"
-                        onChange={(e) => onFilterChange(e)}
-                      />
+                        id="alis"
+                        {...register('alis_fiyati', {
+                          required: "Lütfen boş bıraklın alanları doldurunuz.",
+                        })}
+                        placeholder="Alış Fiyatı (KDV Dahil)"
+                        value={formData.alis_fiyati}
+                        onChange={(e) => setFormData({ ...formData, alis_fiyati: e.target.value })} />
+                      {errors.alis_fiyati && <span className="invalid">{errors.alis_fiyati.message}</span>}
                     </div>
-                  </li>
-                  <li>
-                    <UncontrolledDropdown>
-                      <DropdownToggle
-                        color="transparent"
-                        className="dropdown-toggle dropdown-indicator btn btn-outline-light btn-white"
-                      >
-                        Status
-                      </DropdownToggle>
-                      <DropdownMenu end>
-                        <ul className="link-list-opt no-bdr">
-                          <li>
-                            <DropdownItem tag="a" href="#dropdownitem" onClick={(ev) => ev.preventDefault()}>
-                              <span>New Items</span>
-                            </DropdownItem>
-                          </li>
-                          <li>
-                            <DropdownItem tag="a" href="#dropdownitem" onClick={(ev) => ev.preventDefault()}>
-                              <span>Featured</span>
-                            </DropdownItem>
-                          </li>
-                          <li>
-                            <DropdownItem tag="a" href="#dropdownitem" onClick={(ev) => ev.preventDefault()}>
-                              <span>Out of Stock</span>
-                            </DropdownItem>
-                          </li>
-                        </ul>
-                      </DropdownMenu>
-                    </UncontrolledDropdown>
-                  </li>
-                  <li className="nk-block-tools-opt">
-                    <Button
-                      className="toggle btn-icon d-md-none"
-                      color="primary"
-                      onClick={() => {
-                        toggle("add");
-                      }}
-                    >
-                      <Icon name="plus"></Icon>
-                    </Button>
-                    <Button
-                      className="toggle d-none d-md-inline-flex"
-                      color="primary"
-                      onClick={() => {
-                        toggle("add");
-                      }}
-                    >
-                      <Icon name="plus"></Icon>
-                      <span>Add Product</span>
-                    </Button>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </BlockHeadContent>
-        </BlockBetween>
-      </BlockHead>
-      <Block>
-        <Card className="card-bordered">
-          <div className="card-inner-group">
-            <div className="card-inner p-0">
-              <DataTableBody>
-                <DataTableHead>
-                  <DataTableRow className="nk-tb-col-check">
-                    <div className="custom-control custom-control-sm custom-checkbox notext">
+                  </div>
+                </Col>
+                <Col size="6">
+                  <div className="form-group">
+                    <label htmlFor="satis" className="form-label text-soft">
+
+                      Satış Fiyatı (KDV Dahil)
+
+                    </label>
+                    <div className="form-control-wrap">
                       <input
-                        type="checkbox"
-                        className="custom-control-input"
-                        id="uid_1"
-                        onChange={(e) => selectorCheck(e)}
+                        type="text"
+                        className="form-control"
+                        id="satis"
+                        {...register('satis_fiyati', {
+                          required: "Lütfen boş bıraklın alanları doldurunuz.",
+                        })}
+                        placeholder="Satış Fiyatı (KDV Dahil)"
+                        value={formData.satis_fiyati}
+                        onChange={(e) => setFormData({ ...formData, satis_fiyati: e.target.value })} />
+                      {errors.satis_fiyati && <span className="invalid">{errors.satis_fiyati.message}</span>}
+                    </div>
+                  </div>
+                </Col>
+                <Col size="6">
+                  <div className="form-group">
+                    <label className="form-label text-soft">
+
+                      KDV Oranı
+
+                    </label>
+                    <div className="form-control-wrap">
+                      <RSelect
+                        name="category"
+                        isMulti
+                        placeholder="KDV Oranı"
                       />
-                      <label className="custom-control-label" htmlFor="uid_1"></label>
                     </div>
-                  </DataTableRow>
-                  <DataTableRow size="sm">
-                    <span>Name</span>
-                  </DataTableRow>
-                  <DataTableRow>
-                    <span>SKU</span>
-                  </DataTableRow>
-                  <DataTableRow>
-                    <span>Price</span>
-                  </DataTableRow>
-                  <DataTableRow>
-                    <span>Stock</span>
-                  </DataTableRow>
-                  <DataTableRow size="md">
-                    <span>Category</span>
-                  </DataTableRow>
-                  <DataTableRow size="md">
-                    <Icon name="star-round" className="tb-asterisk"></Icon>
-                  </DataTableRow>
-                  <DataTableRow className="nk-tb-col-tools">
-                    <ul className="nk-tb-actions gx-1 my-n1">
-                      <li className="me-n1">
-                        <UncontrolledDropdown>
-                          <DropdownToggle
-                            tag="a"
-                            href="#toggle"
-                            onClick={(ev) => ev.preventDefault()}
-                            className="dropdown-toggle btn btn-icon btn-trigger"
-                          >
-                            <Icon name="more-h"></Icon>
-                          </DropdownToggle>
-                          <DropdownMenu end>
-                            <ul className="link-list-opt no-bdr">
-                              <li>
-                                <DropdownItem tag="a" href="#edit" onClick={(ev) => ev.preventDefault()}>
-                                  <Icon name="edit"></Icon>
-                                  <span>Edit Selected</span>
-                                </DropdownItem>
-                              </li>
-                              <li>
-                                <DropdownItem
-                                  tag="a"
-                                  href="#remove"
-                                  onClick={(ev) => {
-                                    ev.preventDefault();
-                                    selectorDeleteProduct();
-                                  }}
-                                >
-                                  <Icon name="trash"></Icon>
-                                  <span>Remove Selected</span>
-                                </DropdownItem>
-                              </li>
-                              <li>
-                                <DropdownItem tag="a" href="#stock" onClick={(ev) => ev.preventDefault()}>
-                                  <Icon name="bar-c"></Icon>
-                                  <span>Update Stock</span>
-                                </DropdownItem>
-                              </li>
-                              <li>
-                                <DropdownItem tag="a" href="#price" onClick={(ev) => ev.preventDefault()}>
-                                  <Icon name="invest"></Icon>
-                                  <span>Update Price</span>
-                                </DropdownItem>
-                              </li>
-                            </ul>
-                          </DropdownMenu>
-                        </UncontrolledDropdown>
-                      </li>
-                    </ul>
-                  </DataTableRow>
-                </DataTableHead>
-                {currentItems.length > 0
-                  ? currentItems.map((item) => {
-                    const categoryList = []
-                      item.category.forEach((currentElement) => { 
-                      categoryList.push(currentElement.label)
-                     })
-                      return (
-                        <DataTableItem key={item.id}>
-                          <DataTableRow className="nk-tb-col-check">
-                            <div className="custom-control custom-control-sm custom-checkbox notext">
-                              <input
-                                type="checkbox"
-                                className="custom-control-input"
-                                defaultChecked={item.check}
-                                id={item.id + "uid1"}
-                                key={Math.random()}
-                                onChange={(e) => onSelectChange(e, item.id)}
-                              />
-                              <label className="custom-control-label" htmlFor={item.id + "uid1"}></label>
-                            </div>
-                          </DataTableRow>
-                          <DataTableRow size="sm">
-                            <span className="tb-product">
-                              <img src={item.img ? item.img : ProductH} alt="product" className="thumb" />
-                              <span className="title">{item.name}</span>
-                            </span>
-                          </DataTableRow>
-                          <DataTableRow>
-                            <span className="tb-sub">{item.sku}</span>
-                          </DataTableRow>
-                          <DataTableRow>
-                            <span className="tb-sub">$ {item.price}</span>
-                          </DataTableRow>
-                          <DataTableRow>
-                            <span className="tb-sub">{item.stock}</span>
-                          </DataTableRow>
-                          <DataTableRow size="md">
-                            <span className="tb-sub">
-                              {categoryList.join(", ")}
-                            </span>
-                          </DataTableRow>
-                          <DataTableRow size="md">
-                            <div className="asterisk tb-asterisk">
-                              <a
-                                href="#asterisk"
-                                className={item.fav ? "active" : ""}
-                                onClick={(ev) => ev.preventDefault()}
-                              >
-                                <Icon name="star" className="asterisk-off"></Icon>
-                                <Icon name="star-fill" className="asterisk-on"></Icon>
-                              </a>
-                            </div>
-                          </DataTableRow>
-                          <DataTableRow className="nk-tb-col-tools">
-                            <ul className="nk-tb-actions gx-1 my-n1">
-                              <li className="me-n1">
-                                <UncontrolledDropdown>
-                                  <DropdownToggle
-                                    tag="a"
-                                    href="#more"
-                                    onClick={(ev) => ev.preventDefault()}
-                                    className="dropdown-toggle btn btn-icon btn-trigger"
-                                  >
-                                    <Icon name="more-h"></Icon>
-                                  </DropdownToggle>
-                                  <DropdownMenu end>
-                                    <ul className="link-list-opt no-bdr">
-                                      <li>
-                                        <DropdownItem
-                                          tag="a"
-                                          href="#edit"
-                                          onClick={(ev) => {
-                                            ev.preventDefault();
-                                            onEditClick(item.id);
-                                            toggle("edit");
-                                          }}
-                                        >
-                                          <Icon name="edit"></Icon>
-                                          <span>Edit Product</span>
-                                        </DropdownItem>
-                                      </li>
-                                      <li>
-                                        <DropdownItem
-                                          tag="a"
-                                          href="#view"
-                                          onClick={(ev) => {
-                                            ev.preventDefault();
-                                            onEditClick(item.id);
-                                            toggle("details");
-                                          }}
-                                        >
-                                          <Icon name="eye"></Icon>
-                                          <span>View Product</span>
-                                        </DropdownItem>
-                                      </li>
-                                      <li>
-                                        <DropdownItem
-                                          tag="a"
-                                          href="#remove"
-                                          onClick={(ev) => {
-                                            ev.preventDefault();
-                                            deleteProduct(item.id);
-                                          }}
-                                        >
-                                          <Icon name="trash"></Icon>
-                                          <span>Remove Product</span>
-                                        </DropdownItem>
-                                      </li>
-                                    </ul>
-                                  </DropdownMenu>
-                                </UncontrolledDropdown>
-                              </li>
-                            </ul>
-                          </DataTableRow>
-                        </DataTableItem>
-                      );
-                    })
-                  : null}
-              </DataTableBody>
-              <div className="card-inner">
-                {data.length > 0 ? (
-                  <PaginationComponent
-                    itemPerPage={itemPerPage}
-                    totalItems={data.length}
-                    paginate={paginate}
-                    currentPage={currentPage}
-                  />
-                ) : (
-                  <div className="text-center">
-                    <span className="text-silent">No products found</span>
                   </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </Card>
-      </Block>
-      <Modal isOpen={view.edit} toggle={() => onFormCancel()} className="modal-dialog-centered" size="lg">
-        <ModalBody>
-          <a href="#cancel" className="close">
-            {" "}
-            <Icon
-              name="cross-sm"
-              onClick={(ev) => {
-                ev.preventDefault();
-                onFormCancel();
-              }}
-            ></Icon>
-          </a>
-          <div className="p-2">
-            <h5 className="title">Update Product</h5>
-            <div className="mt-4">
-              <form noValidate onSubmit={handleSubmit(onEditSubmit)}>
-                <Row className="g-3">
-                  <Col size="12">
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="product-title">
-                        Product Title
-                      </label>
-                      <div className="form-control-wrap">
-                        <input
-                          type="text"
-                          className="form-control"
-                          {...register('name', {
-                            required: "This field is required",
-                          })}
-                          value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                        {errors.name && <span className="invalid">{errors.name.message}</span>}
-                      </div>
-                    </div>
-                  </Col>
-                  <Col md="6">
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="regular-price">
-                        Regular Price
-                      </label>
-                      <div className="form-control-wrap">
-                        <input
-                          type="number"
-                          {...register('price', { required: "This is required" })}
-                          className="form-control"
-                          value={formData.price}
-                          onChange={(e) => setFormData({ ...formData, price: e.target.value })}/>
-                        {errors.price && <span className="invalid">{errors.price.message}</span>}
-                      </div>
-                    </div>
-                  </Col>
-                  <Col md="6">
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="sale-price">
-                        Sale Price
-                      </label>
-                      <div className="form-control-wrap">
-                        <input
-                          type="number"
-                          className="form-control"
-                          {...register('salePrice')}
-                          value={formData.salePrice} 
-                          onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}/>
-                        {errors.salePrice && <span className="invalid">{errors.salePrice.message}</span>}
-                      </div>
-                    </div>
-                  </Col>
-                  <Col md="6">
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="stock">
-                        Stock
-                      </label>
-                      <div className="form-control-wrap">
-                        <input
-                          type="number"
-                          className="form-control"
-                          {...register('stock', { required: "This is required" })}
-                          value={formData.stock}
-                          onChange={(e) => setFormData({ ...formData, stock: e.target.value })} />
-                        {errors.stock && <span className="invalid">{errors.stock.message}</span>}
-                      </div>
-                    </div>
-                  </Col>
-                  <Col md="6">
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="SKU">
-                        SKU
-                      </label>
-                      <div className="form-control-wrap">
-                        <input
-                          type="text"
-                          className="form-control"
-                          {...register('sku', { required: "This is required" })}
-                          value={formData.sku}
-                          onChange={(e) => setFormData({ ...formData, sku: e.target.value })}/>
-                        {errors.sku && <span className="invalid">{errors.sku.message}</span>}
-                      </div>
-                    </div>
-                  </Col>
-                  <Col size="12">
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="category">
-                        Category
-                      </label>
-                      <div className="form-control-wrap">
-                        <RSelect
-                          isMulti
-                          options={categoryOptions}
-                          value={formData.category}
-                          onChange={(value) => setFormData({ ...formData, category: value })}
-                          //ref={register({ required: "This is required" })}
-                        />
-                        {errors.category && <span className="invalid">{errors.category.message}</span>}
-                      </div>
-                    </div>
-                  </Col>
-                  <Col size="6">
-                    <div className="form-group">
-                      <label className="form-label" htmlFor="category">
-                        Product Image
-                      </label>
-                      <div className="form-control-wrap">
-                        <img src={formData.img} alt=""></img>
-                      </div>
-                    </div>
-                  </Col>
-                  <Col size="6">
-                    <Dropzone onDrop={(acceptedFiles) => handleDropChange(acceptedFiles)}>
-                      {({ getRootProps, getInputProps }) => (
-                        <section>
-                          <div
-                            {...getRootProps()}
-                            className="dropzone upload-zone small bg-lighter my-2 dz-clickable"
-                          >
-                            <input {...getInputProps()} />
-                            {files.length === 0 && <p>Drag 'n' drop some files here, or click to select files</p>}
-                            {files.map((file) => (
-                              <div
-                                key={file.name}
-                                className="dz-preview dz-processing dz-image-preview dz-error dz-complete"
-                              >
-                                <div className="dz-image">
-                                  <img src={file.preview} alt="preview" />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </section>
-                      )}
-                    </Dropzone>
-                  </Col>
+                </Col>
 
-                  <Col size="12">
-                    <Button color="primary" type="submit">
-                      <Icon className="plus"></Icon>
-                      <span>Update Product</span>
-                    </Button>
-                  </Col>
-                </Row>
-              </form>
-            </div>
-          </div>
-        </ModalBody>
-      </Modal>
+                <Col size="12">
+                  <div className="flex justify-end">
+                    <ButtonGroup>
+                      <Button type="button" onClick={() => onFormCancel()} className="btn btn-outline-primary">
 
-      <Modal isOpen={view.details} toggle={() => onFormCancel()} className="modal-dialog-centered" size="lg">
-        <ModalBody>
-          <a href="#cancel" className="close">
-            {" "}
-            <Icon
-              name="cross-sm"
-              onClick={(ev) => {
-                ev.preventDefault();
-                onFormCancel();
-              }}
-            ></Icon>
-          </a>
-          <div className="nk-modal-head">
-            <h4 className="nk-modal-title title">
-              Product <small className="text-primary">#{formData.sku}</small>
-            </h4>
-            <img src={formData.img} alt="" />
-          </div>
-          <div className="nk-tnx-details mt-sm-3">
-            <Row className="gy-3">
-              <Col lg={6}>
-                <span className="sub-text">Product Name</span>
-                <span className="caption-text">{formData.name}</span>
-              </Col>
-              <Col lg={6}>
-                <span className="sub-text">Product Price</span>
-                <span className="caption-text">$ {formData.price}</span>
-              </Col>
-              <Col lg={6}>
-                <span className="sub-text">Product Category</span>
-                <span className="caption-text">
-                  {formData.category.map((item, index) => (
-                    <Badge key={index} className="me-1" color="secondary">
-                      {item.value}
-                    </Badge>
-                  ))}
-                </span>
-              </Col>
-              <Col lg={6}>
-                <span className="sub-text">Stock</span>
-                <span className="caption-text"> {formData.stock}</span>
-              </Col>
-            </Row>
-          </div>
-        </ModalBody>
-      </Modal>
+                        <span>Vazgeç</span>
+                      </Button>
+                      <Button color="primary" type="submit">
+                        <span>Kaydet</span>
+                      </Button>
+                    </ButtonGroup>
+                  </div>
+                </Col>
+              </Row>
+            </form>
+          </Block>
+        </SimpleBar>
 
-      <SimpleBar
-        className={`nk-add-product toggle-slide toggle-slide-right toggle-screen-any ${
-          view.add ? "content-active" : ""
-        }`}
-      >
-        <BlockHead>
-          <BlockHeadContent>
-            <BlockTitle tag="h5">Add Product</BlockTitle>
-            <BlockDes>
-              <p>Add information or update product.</p>
-            </BlockDes>
-          </BlockHeadContent>
-        </BlockHead>
-        <Block>
-          <form onSubmit={handleSubmit(onFormSubmit)}>
-            <Row className="g-3">
-              <Col size="12">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="product-title">
-                    Product Title
-                  </label>
-                  <div className="form-control-wrap">
-                    <input
-                      type="text"
-                      className="form-control"
-                      {...register('name', {
-                        required: "This field is required",
-                      })}
-                      value={formData.name} 
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}/>
-                    {errors.name && <span className="invalid">{errors.name.message}</span>}
-                  </div>
-                </div>
-              </Col>
-              <Col md="6">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="regular-price">
-                    Regular Price
-                  </label>
-                  <div className="form-control-wrap">
-                    <input
-                      type="number"
-                      {...register('price', { required: "This is required" })}
-                      className="form-control"
-                      value={formData.price} 
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}/>
-                    {errors.price && <span className="invalid">{errors.price.message}</span>}
-                  </div>
-                </div>
-              </Col>
-              <Col md="6">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="sale-price">
-                    Sale Price
-                  </label>
-                  <div className="form-control-wrap">
-                    <input
-                      type="number"
-                      className="form-control"
-                      {...register('salePrice')}
-                      value={formData.salePrice} 
-                      onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}/>
-                    {errors.salePrice && <span className="invalid">{errors.salePrice.message}</span>}
-                  </div>
-                </div>
-              </Col>
-              <Col md="6">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="stock">
-                    Stock
-                  </label>
-                  <div className="form-control-wrap">
-                    <input
-                      type="number"
-                      className="form-control"
-                      {...register('stock', { required: "This is required" })}
-                      value={formData.stock}
-                      onChange={(e) => setFormData({ ...formData, stock: e.target.value })} />
-                    {errors.stock && <span className="invalid">{errors.stock.message}</span>}
-                  </div>
-                </div>
-              </Col>
-              <Col md="6">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="SKU">
-                    SKU
-                  </label>
-                  <div className="form-control-wrap">
-                    <input
-                      type="text"
-                      className="form-control"
-                      {...register('sku', { required: "This is required" })}
-                      value={formData.sku} 
-                      onChange={(e) => setFormData({ ...formData, sku: e.target.value })}/>
-                    {errors.sku && <span className="invalid">{errors.sku.message}</span>}
-                  </div>
-                </div>
-              </Col>
-              <Col size="12">
-                <div className="form-group">
-                  <label className="form-label" htmlFor="category">
-                    Category
-                  </label>
-                  <div className="form-control-wrap">
-                    <RSelect
-                      name="category"
-                      isMulti
-                      options={categoryOptions}
-                      onChange={(value) => setFormData({ ...formData, category: value })}
-                      value={formData.category}
-                      //ref={register({ required: "This is required" })}
-                    />
-                    {errors.category && <span className="invalid">{errors.category.message}</span>}
-                  </div>
-                </div>
-              </Col>
-              <Col size="12">
-                <Dropzone onDrop={(acceptedFiles) => handleDropChange(acceptedFiles)}>
-                  {({ getRootProps, getInputProps }) => (
-                    <section>
-                      <div {...getRootProps()} className="dropzone upload-zone small bg-lighter my-2 dz-clickable">
-                        <input {...getInputProps()} />
-                        {files.length === 0 && <p>Drag 'n' drop some files here, or click to select files</p>}
-                        {files.map((file) => (
-                          <div
-                            key={file.name}
-                            className="dz-preview dz-processing dz-image-preview dz-error dz-complete"
-                          >
-                            <div className="dz-image">
-                              <img src={file.preview} alt="preview" />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
-                  )}
-                </Dropzone>
-              </Col>
-
-              <Col size="12">
-                <Button color="primary" type="submit">
-                  <Icon className="plus"></Icon>
-                  <span>Add Product</span>
-                </Button>
-              </Col>
-            </Row>
-          </form>
-        </Block>
-      </SimpleBar>
-
-      {view.add && <div className="toggle-overlay" onClick={toggle}></div>}
-    </Content>
-  </>;
+        {view.add && <div className="toggle-overlay" onClick={toggle}></div>}
+      </Content>
+    </>
+  );
 };
-
-export default ProductList;
+export default UserListRegularPage;

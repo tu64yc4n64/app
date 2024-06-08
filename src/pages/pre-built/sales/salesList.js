@@ -6,9 +6,9 @@ import SimpleBar from "simplebar-react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { RSelect } from "../../../components/Component";
-import { offerData } from "./offersData";
+
 import DatePicker from "react-datepicker";
-import "./style.css"
+
 import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup } from "reactstrap";
 
 import {
@@ -31,8 +31,8 @@ import {
 
 } from "../../../components/Component";
 
-const OfferListPage = () => {
-    const [data, setData] = useState(offerData);
+const SalesListPage = () => {
+    const [data, setData] = useState([]);
     const [sm, updateSm] = useState(false);
     const [tablesm, updateTableSm] = useState(false);
     const [startDate, setStartDate] = useState(null);
@@ -80,12 +80,12 @@ const OfferListPage = () => {
     // Changing state value when searching name
     useEffect(() => {
         if (onSearchText !== "") {
-            const filteredObject = offerData.filter((item) => {
+            const filteredObject = data.filter((item) => {
                 return item.name.toLowerCase().includes(onSearchText.toLowerCase());
             });
             setData([...filteredObject]);
         } else {
-            setData([...offerData]);
+            setData([...data]);
         }
     }, [onSearchText]);
 
@@ -254,13 +254,13 @@ const OfferListPage = () => {
     const { register, handleSubmit, reset, formState: { errors } } = useForm();
     return (
         <>
-            <Head title="Teklif Sayfası"></Head>
+            <Head title="Satış Sayfası"></Head>
             <Content>
                 <BlockHead size="sm">
                     <BlockBetween>
                         <BlockHeadContent>
-                            <BlockTitle>Teklifler</BlockTitle>
-                            <div className="nk-block-des text-soft"><p>Toplam 450 teklif</p></div>
+                            <BlockTitle>Satışlar</BlockTitle>
+                            <div className="nk-block-des text-soft"><p>Toplam {data.length} satış</p></div>
 
                         </BlockHeadContent>
 
@@ -286,8 +286,8 @@ const OfferListPage = () => {
                                                 color="primary"
 
                                             >
-                                                <Link style={{ color: "white" }} to={`${process.env.PUBLIC_URL}/teklif-olustur`}>
-                                                    Yeni Teklif Oluştur
+                                                <Link style={{ color: "white" }} to={`${process.env.PUBLIC_URL}/satis-olustur`}>
+                                                    Yeni Satış Oluştur
                                                 </Link>
 
                                             </Button>
@@ -298,8 +298,8 @@ const OfferListPage = () => {
                                             >
 
 
-                                                <Link style={{ color: "white" }} to={`${process.env.PUBLIC_URL}/teklif-olustur`}>
-                                                    Yeni Teklif Oluştur
+                                                <Link style={{ color: "white" }} to={`${process.env.PUBLIC_URL}/satis-olustur`}>
+                                                    Yeni Satış Oluştur
                                                 </Link>
 
                                             </Button>
@@ -322,7 +322,7 @@ const OfferListPage = () => {
                                 type="text"
                                 className="form-control "
                                 id="default-04"
-                                placeholder="Tekliflerde Ara..."
+                                placeholder="Satışlarda Ara..."
                                 onChange={(e) => onFilterChange(e)}
                             />
                         </div>
@@ -358,7 +358,7 @@ const OfferListPage = () => {
                                         <DataTableHead>
 
                                             <DataTableRow >
-                                                <span>Teklif No</span>
+                                                <span>Satış No</span>
                                             </DataTableRow>
                                             <DataTableRow>
                                                 <span>Başlık</span>
@@ -474,7 +474,7 @@ const OfferListPage = () => {
                                                                                         }}
                                                                                     >
                                                                                         <Icon name="edit"></Icon>
-                                                                                        <span>Teklifi Düzenle</span>
+                                                                                        <span>Satışı Düzenle</span>
                                                                                     </DropdownItem>
                                                                                 </li>
                                                                                 <li>
@@ -488,7 +488,7 @@ const OfferListPage = () => {
                                                                                         }}
                                                                                     >
                                                                                         <Icon name="eye"></Icon>
-                                                                                        <span>Teklifi Görüntüle</span>
+                                                                                        <span>Satışı Görüntüle</span>
                                                                                     </DropdownItem>
                                                                                 </li>
                                                                                 <li>
@@ -501,7 +501,7 @@ const OfferListPage = () => {
                                                                                         }}
                                                                                     >
                                                                                         <Icon name="trash"></Icon>
-                                                                                        <span>Teklifi Sil</span>
+                                                                                        <span>Satışı Sil</span>
                                                                                     </DropdownItem>
                                                                                 </li>
                                                                             </ul>
@@ -525,7 +525,7 @@ const OfferListPage = () => {
                                             />
                                         ) : (
                                             <div className="text-center">
-                                                <span className="text-silent">Herhangi bir teklif bulunamadı</span>
+                                                <span className="text-silent">Herhangi bir satış bulunamadı</span>
                                             </div>
                                         )}
                                     </div>
@@ -544,7 +544,7 @@ const OfferListPage = () => {
                         <BlockHeadContent>
                             <BlockTitle tag="h5">Yeni Kişi Ekle</BlockTitle>
                             <BlockDes>
-                                <p>Teklif Listenize Yeni Teklif Ekleyin</p>
+                                <p>Satış Listenize Yeni Satış Ekleyin</p>
                             </BlockDes>
                         </BlockHeadContent>
                     </BlockHead>
@@ -863,4 +863,4 @@ const OfferListPage = () => {
         </>
     );
 };
-export default OfferListPage;
+export default SalesListPage;
