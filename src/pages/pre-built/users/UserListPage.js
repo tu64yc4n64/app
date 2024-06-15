@@ -1226,7 +1226,11 @@ const UserListPage = () => {
                                 </Col>
 
                                 <BlockDes>
-                                    <p>Parola</p>
+                                    <h6 className="mt-3">
+                                        <p>Parola</p>
+                                    </h6>
+
+
                                 </BlockDes>
 
 
@@ -1266,15 +1270,15 @@ const UserListPage = () => {
                                 </Col>
                                 <Col size="12">
                                     <div className="flex justify-end">
-                                        <ButtonGroup>
-                                            <Button type="button" onClick={() => onFormCancel()} className="btn btn-outline-primary">
 
-                                                <span>Vazgeç</span>
-                                            </Button>
-                                            <Button color="primary" type="submit">
-                                                <span>Kaydet</span>
-                                            </Button>
-                                        </ButtonGroup>
+                                        <Button type="button" onClick={() => onFormCancel()} className="btn btn-outline-primary me-2">
+
+                                            <span>Vazgeç</span>
+                                        </Button>
+                                        <Button color="primary" type="submit">
+                                            <span>Kaydet</span>
+                                        </Button>
+
                                     </div>
                                 </Col>
                             </Row>

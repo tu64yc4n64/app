@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import Content from "../../../layout/content/Content";
 import Head from "../../../layout/head/Head";
 import ProductH from "../../../images/avatar/a-sm.jpg"
-import { DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, Modal, ModalBody, CardBody, CardSubtitle, CardTitle, CardText, CardLink } from "reactstrap";
+import { DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, CardBody, CardTitle } from "reactstrap";
 import AddMeetModal from "./AddMeetModal";
 import { meetings } from "./meetingData";
 import {
@@ -22,20 +22,97 @@ import {
 } from "../../../components/Component";
 
 import { useNavigate, useParams } from "react-router-dom";
-import { currentTime, findUpper, monthNames, todaysDate } from "../../../utils/Utils";
-import { UserContext } from "./UserContext";
-import { notes } from "./UserData";
+
+import axios from "axios";
+
+const BASE_URL = "https://tiosone.com/customers/api/"
+
 
 const UserDetailsPage = () => {
-  const { contextData } = useContext(UserContext);
+  let { userId } = useParams();
+
+  const refreshAccessToken = async () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+
+
+    if (!refreshToken) {
+      console.error('No refresh token found in local storage.');
+      return null;
+    }
+
+    try {
+      const response = await axios.post("https://tiosone.com/api/token/refresh/", {
+        refresh: refreshToken
+      }, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const newAccessToken = response.data.access;
+      localStorage.setItem('accessToken', newAccessToken);
+      return newAccessToken;
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        console.error("Refresh token is invalid or expired. User needs to re-login.");
+        window.location.href = '/auth-login';
+      } else {
+        console.error("Error refreshing access token", error);
+      }
+      return null;
+    }
+  };
+
+  const getAllUsers = async () => {
+    let accessToken = localStorage.getItem('accessToken');
+
+
+    try {
+      const response = await axios.get(BASE_URL + `persons/${userId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      });
+      setData(response.data);
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+
+        accessToken = await refreshAccessToken();
+        if (accessToken) {
+
+          try {
+            const response = await axios.get(BASE_URL + "persons/", {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+              }
+            });
+            setData(response.data);
+
+          } catch (retryError) {
+            console.error("Retry error after refreshing token", retryError);
+          }
+        }
+      } else {
+        console.error("There was an error fetching the data!", error);
+      }
+    }
+  };
+  useEffect(() => {
+    getAllUsers()
+
+  }, [userId])
+
   const [conversation, setConversation] = useState(meetings);
   const currentItems = conversation
-  const [data] = contextData;
+  const [data, setData] = useState();
+  console.log(data)
 
   const [sideBar, setSidebar] = useState(false);
   const [itemPerPage, setItemPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [user, setUser] = useState();
+
 
   const [modal, setModal] = useState({
     edit: false,
@@ -63,13 +140,13 @@ const UserDetailsPage = () => {
   };
 
 
-  let { userId } = useParams();
+
 
   // grabs the id of the url and loads the corresponding data
   useEffect(() => {
     const id = userId;
     if (id !== undefined || null || "") {
-      let spUser = data.find((item) => item.id === Number(id));
+      let spUser = data;
       setUser(spUser);
     } else {
       setUser(data[0]);
@@ -102,6 +179,8 @@ const UserDetailsPage = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+
+
   return (
     <>
       <Head title="User Details - Regular"></Head>
@@ -111,7 +190,7 @@ const UserDetailsPage = () => {
             <BlockBetween>
               <BlockHeadContent>
                 <BlockTitle tag="h3" page>
-                  Kişiler / <strong className=" small">{user.name}</strong>
+                  Kişiler / <strong className=" small">{user.first_name} {user.last_name}</strong>
 
                 </BlockTitle>
                 <span className="badge bg-outline-secondary">{user.category}</span>
@@ -166,19 +245,29 @@ const UserDetailsPage = () => {
                             </li>
                             <li>
                               <Icon name="user-fill"></Icon>
-                              <strong className="ps-3">Murat Yol</strong>
+                              {user.customer_representatives.map((representative, id) => (
+                                <strong key={id
+
+                                } className="ps-3" >{representative.name}</strong>
+                              ))}
                             </li>
                             <li>
                               <Icon name="ticket-fill"></Icon>
-                              <strong className="ps-3"><span className="badge bg-outline-secondary">Etiket</span></strong>
+                              {user.tags.map((tag, id) => (
+                                <strong key={id} className="ps-3">
+                                  <span className="badge bg-outline-secondary">
+                                    {tag.value}
+                                  </span>
+                                </strong>
+                              ))}
                             </li>
                             <li>
                               <Icon name="calender-date-fill"></Icon>
-                              <strong className="ps-3">14 Mayıs 2023 Tarihinde oluşturuldu.</strong>
+                              <strong className="ps-3"> tarihinde oluşturuldu.</strong>
                             </li>
                             <li>
                               <Icon name="calender-date-fill"></Icon>
-                              <strong className="ps-3">18 Mayıs 2023 Tarihinde düzenlendi.</strong>
+                              <strong className="ps-3"> tarihinde düzenlendi.</strong>
                             </li>
                           </ul>
                         </div>
@@ -193,7 +282,7 @@ const UserDetailsPage = () => {
 
                         <div className="d-flex">
                           <Icon style={{ position: "relative", top: "4px" }} name="map-pin-fill"></Icon>
-                          <span>Hüseyin Yılmaz Cad. Pamukkale Üniversitesi Teknokent No:67 B Blok Z-12 Pamukkale / Denizli</span>
+                          <span>{user.address_line}</span>
                         </div>
 
                       </CardBody>

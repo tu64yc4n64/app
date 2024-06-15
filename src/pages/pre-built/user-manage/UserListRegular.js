@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { RSelect } from "../../../components/Component";
 import DatePicker from "react-datepicker";
 import api from '../../../api/api';
-import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup, Modal, ModalBody, Badge } from "reactstrap";
+import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, Modal, ModalBody } from "reactstrap";
 
 import {
   Block,
@@ -37,37 +37,76 @@ const BASE_URL = "https://tiosone.com/customers/api/"
 
 const UserListRegularPage = () => {
 
-  let accessToken = localStorage.getItem('accessToken');
-  console.log(accessToken)
+
+  const [data, setData] = useState([]);
+  console.log(data)
 
   const getAllCategories = async () => {
+    let accessToken = localStorage.getItem('accessToken');
+
     try {
       const response = await axios.get(BASE_URL + "categories?type=person", {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         }
-      });;
+      });
       setCategories(response.data);
     } catch (error) {
-      console.error("There was an error fetching the data!", error);
+      if (error.response && error.response.status === 401) {
+        accessToken = await refreshAccessToken();
+        if (accessToken) {
+          try {
+            const response = await axios.get(BASE_URL + "categories?type=person", {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+              }
+            });
+            setCategories(response.data);
+          } catch (retryError) {
+            console.error("Retry error after refreshing token", retryError);
+          }
+        }
+      } else {
+        console.error("There was an error fetching the data!", error);
+      }
     }
   };
+
   const getAllTags = async () => {
+    let accessToken = localStorage.getItem('accessToken');
+
     try {
       const response = await axios.get(BASE_URL + "tags?type=person", {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`
+          'Authorization': `Bearer ${accessToken}`
         }
-      });;
+      });
       setTags(response.data);
     } catch (error) {
-      console.error("There was an error fetching the data!", error);
+      if (error.response && error.response.status === 401) {
+        accessToken = await refreshAccessToken();
+        if (accessToken) {
+          try {
+            const response = await axios.get(BASE_URL + "tags?type=person", {
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`
+              }
+            });
+            setTags(response.data);
+          } catch (retryError) {
+            console.error("Retry error after refreshing token", retryError);
+          }
+        }
+      } else {
+        console.error("There was an error fetching the data!", error);
+      }
     }
   };
 
-  const [data, setData] = useState([]);
   const refreshAccessToken = async () => {
     const refreshToken = localStorage.getItem('refreshToken');
 
@@ -141,8 +180,10 @@ const UserListRegularPage = () => {
 
   }, [])
   const [categories, setCategories] = useState([]);
+
   const [tags, setTags] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState([]);
+
   const [selectedTag, setSelectedTag] = useState([]);
   const formattedCategories = categories.map(category => ({
     value: category.id,
@@ -152,11 +193,12 @@ const UserListRegularPage = () => {
     value: tag.id,
     label: tag.name
   }));
-  const handleCategoryChange = (selectedOption) => {
-    setSelectedCategory(selectedOption);
+  const handleCategoryChange = (selectedOptions) => {
+    setSelectedCategory(selectedOptions);
   };
-  const handleTagChange = (selectedOption) => {
-    setSelectedTag(selectedOption);
+
+  const handleTagChange = (selectedOptions) => {
+    setSelectedTag(selectedOptions);
   };
   useEffect(() => {
     getAllCategories()
@@ -265,7 +307,6 @@ const UserListRegularPage = () => {
 
     reset({});
   };
-  console.log(selectedCategory)
 
   const onFormSubmit = async (form) => {
     let accessToken = localStorage.getItem('accessToken');
@@ -279,7 +320,12 @@ const UserListRegularPage = () => {
       //  department: "",
       job_title: job_title,
       // birthday: birthday,
-      categories: selectedCategory[0].value,
+      categories: [{
+        "id": 1,
+        "name": "Logistics",
+        "parent": null,
+        "type": "company"
+      },],
       tags: [],
       country: "Türkiye",
       city: "Uşak",
@@ -483,16 +529,7 @@ const UserListRegularPage = () => {
 
             <BlockHeadContent>
               <div className="toggle-wrap nk-block-tools-toggle">
-                <a
-                  href="#more"
-                  className="btn btn-icon btn-trigger toggle-expand me-n1"
-                  onClick={(ev) => {
-                    ev.preventDefault();
-                    updateSm(!sm);
-                  }}
-                >
-                  <Icon name="more-v"></Icon>
-                </a>
+
                 <div className="toggle-expand-content" style={{ display: sm ? "block" : "none" }}>
                   <ul className="nk-block-tools g-3">
 
@@ -686,8 +723,8 @@ const UserListRegularPage = () => {
                               </div>
                             </DataTableRow>
                             <DataTableRow>
-                              <Link to={`${process.env.PUBLIC_URL}/user-details-regular/${item.id}`}>
-                                <span className="tb-product" style={{ flexDirection: "column", display: "flex", alignItems: "start" }}>
+                              <Link to={`${process.env.PUBLIC_URL}/kisi-detay/${item.id}`}>
+                                <span className="tb-product" style={{ flexDirection: "column", display: "flex", alignItems: "center" }}>
 
                                   <span className="title">{item.first_name} {item.last_name}</span>
                                   <small className="text-soft">{item.email}</small>
@@ -828,11 +865,12 @@ const UserListRegularPage = () => {
                   <Row className="g-3">
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="firstName">
                           Adı
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="firstName"
                             type="text"
                             className="form-control"
                             {...register('first_name', {
@@ -846,11 +884,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="lastName">
                           Soyadı
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="lastName"
                             type="text"
                             className="form-control"
                             {...register('last_name', {
@@ -864,11 +903,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="sirket">
                           Şirket
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="sirket"
                             type="text"
                             className="form-control"
 
@@ -880,11 +920,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="bolum">
                           Bölüm
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="bolum"
                             type="text"
                             className="form-control"
 
@@ -896,11 +937,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="unvan1">
                           Ünvan
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="unvan1"
                             type="text"
                             className="form-control"
 
@@ -912,11 +954,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="dogumGunu">
                           Doğum Günü
                         </label>
                         <div className="form-control-wrap">
                           <DatePicker
+                            id="dogumGunu"
                             selected={formData.birthday}
                             onChange={(e) => setFormData({ ...formData, birthday: e })}
                             className="form-control"
@@ -929,11 +972,12 @@ const UserListRegularPage = () => {
 
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="category">
+                        <label className="form-label">
                           Kategori
                         </label>
                         <div className="form-control-wrap">
                           <RSelect
+
                             isMulti
                             options={formattedCategories}
                             value={formData.categories}
@@ -944,7 +988,7 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="category">
+                        <label className="form-label">
                           Etiketler
                         </label>
                         <div className="form-control-wrap">
@@ -959,11 +1003,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="ulke">
                           Ülke
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="ulke"
                             type="text"
                             className="form-control"
 
@@ -975,11 +1020,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="sehir">
                           Şehir
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="sehir"
                             type="text"
                             className="form-control"
 
@@ -991,11 +1037,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="ilce">
                           İlçe
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="ilce"
                             type="text"
                             className="form-control"
 
@@ -1007,11 +1054,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="adress">
                           Adres
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="adress"
                             type="text"
                             className="form-control"
 
@@ -1023,11 +1071,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="telefon1">
                           Telefon
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="telefon1"
                             type="text"
                             className="form-control"
 
@@ -1039,11 +1088,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="mail1">
                           Email
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="mail1"
                             type="text"
                             className="form-control"
 
@@ -1055,11 +1105,12 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="regular-price">
+                        <label className="form-label" htmlFor="website1">
                           Website
                         </label>
                         <div className="form-control-wrap">
                           <input
+                            id="website1"
                             type="text"
                             className="form-control"
 
@@ -1071,7 +1122,7 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="category">
+                        <label className="form-label">
                           Durum
                         </label>
                         <div className="form-control-wrap">
@@ -1079,7 +1130,7 @@ const UserListRegularPage = () => {
 
                             options={durum}
                             value={durum.find(option => option.value === formData.is_active)}
-                            onChange={(selectedOption) => setFormData({ ...formData, is_active: selectedOption.value })}
+                            onChange={(selectedOptions) => setFormData({ ...formData, is_active: selectedOptions.value })}
 
                           />
                         </div>
@@ -1087,7 +1138,7 @@ const UserListRegularPage = () => {
                     </Col>
                     <Col lg="4">
                       <div className="form-group">
-                        <label className="form-label" htmlFor="category">
+                        <label className="form-label">
                           Temsilci
                         </label>
                         <div className="form-control-wrap">
@@ -1262,13 +1313,14 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
-                    <label htmlFor="kullanici-adi" className="form-label text-soft">
+                    <label htmlFor="soyadi" className="form-label text-soft">
 
                       Soyadı
 
                     </label>
                     <div className="form-control-wrap">
                       <input
+                        id="soyadi"
                         type="text"
                         className="form-control"
                         {...register('last_name', {
@@ -1283,13 +1335,14 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
-                    <label htmlFor="kullanici-adi" className="form-label text-soft">
+                    <label htmlFor="unvan" className="form-label text-soft">
 
                       Ünvan
 
                     </label>
                     <div className="form-control-wrap">
                       <input
+                        id="unvan"
                         type="text"
                         className="form-control"
                         placeholder="Ünvan"
@@ -1302,13 +1355,14 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
-                    <label htmlFor="kullanici-adi" className="form-label text-soft">
+                    <label htmlFor="mail" className="form-label text-soft">
 
                       Email Adresi
 
                     </label>
                     <div className="form-control-wrap">
                       <input
+                        id="mail"
                         type="text"
                         className="form-control"
                         {...register('email', {
@@ -1323,11 +1377,17 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label htmlFor="telefon" className="form-label text-soft">
+
+                      Telefon No
+
+                    </label>
 
                     <div className="form-control-wrap">
                       <input
                         type="text"
                         className="form-control"
+                        id="telefon"
 
                         placeholder="Telefon No"
 
@@ -1338,10 +1398,15 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label htmlFor="dogumTarihi" className="form-label text-soft">
+
+                      Doğum Tarihi
+
+                    </label>
 
                     <div className="form-control-wrap">
                       <DatePicker
-
+                        id="dogumTarihi"
                         onChange={(e) => setFormData({ ...formData, birthday: e })}
                         selected={formData.birthday}
                         className="form-control"
@@ -1353,11 +1418,17 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label htmlFor="website" className="form-label text-soft">
+
+                      Website
+
+                    </label>
 
                     <div className="form-control-wrap">
                       <input
                         type="text"
                         className="form-control"
+                        id="website"
 
                         placeholder="Website"
 
@@ -1367,10 +1438,18 @@ const UserListRegularPage = () => {
                   </div>
                 </Col>
                 <BlockDes>
-                  <p>Kategorilendirme</p>
+                  <h6 className="mt-3">
+
+                    Kategorilendirme
+                  </h6>
                 </BlockDes>
                 <Col size="6">
                   <div className="form-group">
+                    <label className="form-label text-soft">
+
+                      Departman
+
+                    </label>
 
                     <div className="form-control-wrap">
                       <RSelect
@@ -1383,6 +1462,11 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label className="form-label text-soft">
+
+                      Temsilci
+
+                    </label>
 
                     <div className="form-control-wrap">
 
@@ -1397,6 +1481,11 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label className="form-label text-soft">
+
+                      Kategorii
+
+                    </label>
 
                     <div className="form-control-wrap">
                       <RSelect
@@ -1404,7 +1493,7 @@ const UserListRegularPage = () => {
                         isMulti
                         placeholder="Kategori"
                         options={formattedCategories}
-                        onChange={(selectedOption) => handleCategoryChange(selectedOption)}
+                        onChange={(selectedOptions) => handleCategoryChange(selectedOptions)}
                         value={selectedCategory}
 
                       />
@@ -1414,6 +1503,11 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label className="form-label text-soft">
+
+                      Etiket
+
+                    </label>
 
                     <div className="form-control-wrap">
                       <RSelect
@@ -1421,19 +1515,28 @@ const UserListRegularPage = () => {
                         isMulti
                         placeholder="Etiket"
                         options={formattedTags}
-                        onChange={(selectedOption) => handleTagChange(selectedOption)}
+                        onChange={(selectedOptions) => handleTagChange(selectedOptions)}
                         value={selectedTag} />
                     </div>
                   </div>
                 </Col>
                 <BlockDes>
-                  <p>Adres Bilgileri</p>
+                  <h6 className="mt-3">
+
+                    Adres Bilgileri
+                  </h6>
                 </BlockDes>
                 <Col size="12">
                   <div className="form-group">
+                    <label htmlFor="adres" className="form-label text-soft">
+
+                      Adres
+
+                    </label>
 
                     <div className="form-control-wrap">
                       <input
+                        id="adres"
                         type="text"
                         className="form-control"
 
@@ -1446,6 +1549,11 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label className="form-label text-soft">
+
+                      Şehir
+
+                    </label>
 
                     <div className="form-control-wrap">
                       <RSelect
@@ -1460,6 +1568,11 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label className="form-label text-soft">
+
+                      İlçe
+
+                    </label>
 
                     <div className="form-control-wrap">
                       <RSelect
@@ -1474,6 +1587,11 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="6">
                   <div className="form-group">
+                    <label className="form-label text-soft">
+
+                      Ülke
+
+                    </label>
 
                     <div className="form-control-wrap">
                       <RSelect
@@ -1488,15 +1606,15 @@ const UserListRegularPage = () => {
                 </Col>
                 <Col size="12">
                   <div className="flex justify-end">
-                    <ButtonGroup>
-                      <Button type="button" onClick={() => onFormCancel()} className="btn btn-outline-primary">
 
-                        <span>Vazgeç</span>
-                      </Button>
-                      <Button color="primary" type="submit">
-                        <span>Kaydet</span>
-                      </Button>
-                    </ButtonGroup>
+                    <Button type="button" onClick={() => onFormCancel()} className="btn btn-outline-primary me-2">
+
+                      <span>Vazgeç</span>
+                    </Button>
+                    <Button color="primary" type="submit">
+                      <span>Kaydet</span>
+                    </Button>
+
                   </div>
                 </Col>
               </Row>

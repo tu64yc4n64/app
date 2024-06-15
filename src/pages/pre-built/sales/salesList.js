@@ -841,16 +841,16 @@ const SalesListPage = () => {
 
                                 <Col size="12">
                                     <div className="flex justify-end">
-                                        <ButtonGroup>
-                                            <Button type="button" onClick={() => setView({ ...view, add: false })} className="btn btn-outline-primary">
 
-                                                <span>Vazgeç</span>
-                                            </Button>
-                                            <Button color="primary" type="submit">
+                                        <Button type="button" onClick={() => setView({ ...view, add: false })} className="btn btn-outline-primary me-2">
 
-                                                <span>Kaydet</span>
-                                            </Button>
-                                        </ButtonGroup>
+                                            <span>Vazgeç</span>
+                                        </Button>
+                                        <Button color="primary" type="submit">
+
+                                            <span>Kaydet</span>
+                                        </Button>
+
                                     </div>
                                 </Col>
                             </Row>

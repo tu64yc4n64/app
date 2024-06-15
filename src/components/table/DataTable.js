@@ -35,6 +35,7 @@ export const DataTableHead = ({ ...props }) => {
 export const DataTableRow = ({ className, size, ...props }) => {
   const rowClass = classNames({
     "nk-tb-col": true,
+    "text-center": true,
     [`${className}`]: className,
     [`tb-col-${size}`]: size,
   });

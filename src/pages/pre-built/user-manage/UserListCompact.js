@@ -31,12 +31,12 @@ import {
   TooltipComponent,
 } from "../../../components/Component";
 import { Link } from "react-router-dom";
-import { UserContext } from "./UserContext";
+import { PersonContext } from "./PersonContext";
 import EditModal from "./EditModal";
 import AddModal from "./AddModal";
 
 const UserListCompact = () => {
-  const { contextData } = useContext(UserContext);
+  const { contextData } = useContext(PersonContext);
   const [data, setData] = contextData;
 
   const [sm, updateSm] = useState(false);

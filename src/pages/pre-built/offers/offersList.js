@@ -6,10 +6,10 @@ import SimpleBar from "simplebar-react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { RSelect } from "../../../components/Component";
-import { offerData } from "./offersData";
+
 import DatePicker from "react-datepicker";
 import "./style.css"
-import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, ButtonGroup } from "reactstrap";
+import { Card, DropdownItem, UncontrolledDropdown, DropdownMenu, DropdownToggle, Modal, ModalBody } from "reactstrap";
 
 import {
     Block,
@@ -31,35 +31,112 @@ import {
 
 } from "../../../components/Component";
 
-const OfferListPage = () => {
-    const [data, setData] = useState(offerData);
-    const [sm, updateSm] = useState(false);
-    const [tablesm, updateTableSm] = useState(false);
-    const [startDate, setStartDate] = useState(null);
-    const [itemPerPage, setItemPerPage] = useState(10);
-    const [sort, setSortState] = useState("");
-    const [onSearch, setonSearch] = useState(true);
+import axios from "axios";
+const BASE_URL = "https://tiosone.com/sales/api/"
 
-    const sortFunc = (params) => {
-        let defaultData = data;
-        if (params === "asc") {
-            let sortedData = defaultData.sort((a, b) => a.name.localeCompare(b.name));
-            setData([...sortedData]);
-        } else if (params === "dsc") {
-            let sortedData = defaultData.sort((a, b) => b.name.localeCompare(a.name));
-            setData([...sortedData]);
+const OfferListPage = () => {
+    const [data, setData] = useState([]);
+    const [originalData, setOriginalData] = useState([]);
+    console.log(data);
+
+    const refreshAccessToken = async () => {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) {
+            console.error('No refresh token found in local storage.');
+            return null;
+        }
+
+        try {
+            const response = await axios.post("https://tiosone.com/api/token/refresh/", {
+                refresh: refreshToken
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const newAccessToken = response.data.access;
+            localStorage.setItem('accessToken', newAccessToken);
+            return newAccessToken;
+        } catch (error) {
+            if (error.response && error.response.status === 401) {
+                console.error("Refresh token is invalid or expired. User needs to re-login.");
+                window.location.href = '/auth-login';
+            } else {
+                console.error("Error refreshing access token", error);
+            }
+            return null;
         }
     };
+
+    const getAllOffers = async () => {
+        let accessToken = localStorage.getItem('accessToken');
+        try {
+            const response = await axios.get(BASE_URL + "offers/", {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            setData(response.data);
+            setOriginalData(response.data);
+        } catch (error) {
+            if (error.response && error.response.status === 401) {
+                accessToken = await refreshAccessToken();
+                if (accessToken) {
+                    try {
+                        const response = await axios.get(BASE_URL + "offers/", {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+                            }
+                        });
+                        setData(response.data);
+                        setOriginalData(response.data);
+                    } catch (retryError) {
+                        console.error("Retry error after refreshing token", retryError);
+                    }
+                }
+            } else {
+                console.error("There was an error fetching the data!", error);
+            }
+        }
+    };
+
+    useEffect(() => {
+        getAllOffers();
+    }, []);
+
+    const [sm, updateSm] = useState(false);
+    const [startDate, setStartDate] = useState("");
+    const [itemPerPage, setItemPerPage] = useState(10);
+    const [onSearch, setonSearch] = useState(true);
+
     const [formData, setFormData] = useState({
-        name: "",
-        img: null,
-        sku: "",
-        price: 0,
-        salePrice: 0,
-        stock: 0,
-        category: [],
-        fav: false,
-        check: false,
+        added_by: 1,
+        address: "",
+        category: 2,
+        city: "",
+        company: 1,
+        country: "",
+        created_at: "",
+        created_by: 1,
+        customer: "",
+        customer_name: "",
+        discount: "",
+        discount_type: "",
+        district: "",
+        email: "",
+        id: 1,
+        items: [],
+        offer_date: "",
+        phone: "",
+        postal_code: "",
+        status: "",
+        tags: [],
+        title: "",
+        total: "",
+        updated_at: "",
+        valid_until: ""
     });
     const [editId, setEditedId] = useState();
     const [view, setView] = useState({
@@ -70,26 +147,22 @@ const OfferListPage = () => {
     const [onSearchText, setSearchText] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
 
-    const [files, setFiles] = useState([]);
 
-    //scroll off when sidebar shows
     useEffect(() => {
         view.add ? document.body.classList.add("toggle-shown") : document.body.classList.remove("toggle-shown");
-    }, [view.add])
+    }, [view.add]);
 
-    // Changing state value when searching name
     useEffect(() => {
         if (onSearchText !== "") {
-            const filteredObject = offerData.filter((item) => {
-                return item.name.toLowerCase().includes(onSearchText.toLowerCase());
+            const filteredObject = data.filter((item) => {
+                return item.title.toLowerCase().includes(onSearchText.toLowerCase());
             });
             setData([...filteredObject]);
         } else {
-            setData([...offerData]);
+            setData([...originalData]);
         }
     }, [onSearchText]);
 
-    // function to close the form modal
     const onFormCancel = () => {
         setView({ edit: false, add: false, details: false });
         resetForm();
@@ -97,41 +170,37 @@ const OfferListPage = () => {
 
     const resetForm = () => {
         setFormData({
-            name: "",
-            img: null,
-            sku: "",
-            price: 0,
-            salePrice: 0,
-            stock: 0,
-            category: [],
-            fav: false,
-            check: false,
+            added_by: 1,
+            address: "",
+            category: 2,
+            city: "",
+            company: 1,
+            country: "",
+            created_at: "",
+            created_by: 1,
+            customer: "",
+            customer_name: "",
+            discount: "",
+            discount_type: "",
+            district: "",
+            email: "",
+            id: 1,
+            items: [],
+            offer_date: "",
+            phone: "",
+            postal_code: "",
+            status: "",
+            tags: [],
+            title: "",
+            total: "",
+            updated_at: "",
+            valid_until: ""
         });
         reset({});
     };
 
-    const onFormSubmit = (form) => {
-        const { title, price, salePrice, sku, stock } = form;
-
-        let submittedData = {
-            id: data.length + 1,
-            name: title,
-            img: files.length > 0 ? files[0].preview : ProductH,
-            sku: sku,
-            price: price,
-            salePrice: salePrice,
-            stock: stock,
-            category: formData.category,
-            fav: false,
-            check: false,
-        };
-        setData([submittedData, ...data]);
-        setView({ open: false });
-        setFiles([]);
-        resetForm();
-    };
-
-    const onEditSubmit = () => {
+    const onEditSubmit = async () => {
+        let accessToken = localStorage.getItem('accessToken');
         let submittedData;
         let newItems = data;
         let index = newItems.findIndex((item) => item.id === editId);
@@ -139,62 +208,103 @@ const OfferListPage = () => {
         newItems.forEach((item) => {
             if (item.id === editId) {
                 submittedData = {
-                    id: editId,
-                    name: formData.name,
-                    img: files.length > 0 ? files[0].preview : item.img,
-                    sku: formData.sku,
-                    price: formData.price,
-                    salePrice: formData.salePrice,
-                    stock: formData.stock,
-                    category: formData.category,
-                    fav: false,
-                    check: false,
+                    added_by: 1,
+                    address: formData.address,
+                    category: 2,
+                    city: formData.city,
+                    company: 1,
+                    country: formData.country,
+                    created_at: formData.created_at,
+                    created_by: 1,
+                    customer: "",
+                    customer_name: "",
+                    discount: formData.discount,
+                    discount_type: "",
+                    district: formData.district,
+                    email: formData.email,
+                    id: 1,
+                    items: formData.items,
+                    offer_date: formData.offer_date,
+                    phone: formData.phone,
+                    postal_code: formData.postal_code,
+                    status: formData.status,
+                    tags: [],
+                    title: formData.title,
+                    total: formData.total,
+                    updated_at: formData.updated_at,
+                    valid_until: formData.valid_until
                 };
             }
         });
+
+        try {
+            const response = await axios.put(`${BASE_URL}offers/${editId}`, submittedData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+
+            newItems[index] = response.data;
+            setData(newItems);
+            resetForm();
+            setView({ edit: false, add: false });
+        } catch (error) {
+            console.error('Veritabanını güncelleme sırasında hata oluştu:', error);
+        }
         newItems[index] = submittedData;
-        //setData(newItems);
         resetForm();
         setView({ edit: false, add: false });
     };
 
-    // function that loads the want to editted data
     const onEditClick = (id) => {
         data.forEach((item) => {
             if (item.id === id) {
                 setFormData({
-                    name: item.name,
-                    img: item.img,
-                    sku: item.sku,
-                    price: item.price,
-                    salePrice: item.salePrice,
-                    stock: item.stock,
-                    category: item.category,
-                    fav: false,
-                    check: false,
+                    added_by: 1,
+                    address: item.address || "",
+                    category: 2,
+                    city: item.city || "",
+                    company: 1,
+                    country: item.country || "",
+                    created_at: item.created_at || "",
+                    created_by: 1,
+                    customer: "",
+                    customer_name: "",
+                    discount: item.discount || "",
+                    discount_type: "",
+                    district: item.district || "",
+                    email: item.email || "",
+                    id: 1,
+                    items: item.items.map((item) => item) || [],
+                    offer_date: item.offer_date || "",
+                    phone: item.phone || "",
+                    postal_code: item.postal_code || "",
+                    status: item.status || "",
+                    tags: [],
+                    title: item.title || "",
+                    total: item.total || "",
+                    updated_at: item.updated_at || "",
+                    valid_until: item.valid_until || ""
                 });
             }
         });
         setEditedId(id);
-        setFiles([]);
         setView({ add: false, edit: true });
     };
 
     useEffect(() => {
-        reset(formData)
+        reset(formData);
     }, [formData]);
 
-    // selects all the products
     const selectorCheck = (e) => {
-        let newData;
-        newData = data.map((item) => {
+        let newData = data.map((item) => {
             item.check = e.currentTarget.checked;
             return item;
         });
         setData([...newData]);
     };
 
-    // selects one product
     const onSelectChange = (e, id) => {
         let newData = data;
         let index = newData.findIndex((item) => item.id === id);
@@ -202,26 +312,31 @@ const OfferListPage = () => {
         setData([...newData]);
     };
 
-    // onChange function for searching name
     const onFilterChange = (e) => {
         setSearchText(e.target.value);
     };
 
-    // function to delete a product
-    const deleteProduct = (id) => {
-        let defaultData = data;
-        defaultData = defaultData.filter((item) => item.id !== id);
-        setData([...defaultData]);
+    const deleteOffer = async (id) => {
+        let accessToken = localStorage.getItem('accessToken');
+
+        try {
+            await axios.delete(`${BASE_URL}offers/${id}`, {
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            let updatedData = data.filter((item) => item.id !== id);
+            setData([...updatedData]);
+        } catch (error) {
+            console.error("There was an error deleting the product!", error);
+        }
     };
 
-    // function to delete the seletected item
     const selectorDeleteProduct = () => {
-        let newData;
-        newData = data.filter((item) => item.check !== true);
+        let newData = data.filter((item) => item.check !== true);
         setData([...newData]);
     };
-
-    // toggle function to view product details
 
     const toggle = (type) => {
         setView({
@@ -229,26 +344,15 @@ const OfferListPage = () => {
             add: type === "add" ? true : false,
             details: type === "details" ? true : false,
         });
-        setonSearch(!onSearch)
+        setonSearch(!onSearch);
     };
 
-    // handles ondrop function of dropzone
-    const handleDropChange = (acceptedFiles) => {
-        setFiles(
-            acceptedFiles.map((file) =>
-                Object.assign(file, {
-                    preview: URL.createObjectURL(file),
-                })
-            )
-        );
-    };
 
-    // Get current list, pagination
+
     const indexOfLastItem = currentPage * itemPerPage;
     const indexOfFirstItem = indexOfLastItem - itemPerPage;
     const currentItems = data.slice(indexOfFirstItem, indexOfLastItem);
 
-    // Change Page
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const { register, handleSubmit, reset, formState: { errors } } = useForm();
@@ -398,55 +502,49 @@ const OfferListPage = () => {
                                         </DataTableHead>
                                         {currentItems.length > 0
                                             ? currentItems.map((item) => {
-
                                                 return (
                                                     <DataTableItem key={item.id}>
-
                                                         <DataTableRow>
-
-                                                            <span className="tb-product" style={{ flexDirection: "column", display: "flex", alignItems: "start" }}>
-
-                                                                <span className="title">{item.offer_no}</span>
-
-                                                            </span>
-
+                                                            <Link to={`${process.env.PUBLIC_URL}/teklif-detay/${item.id}`}>
+                                                                <span className="tb-product" style={{ flexDirection: "column", display: "flex" }}>
+                                                                    <span className="title">{item.id}</span>
+                                                                </span>
+                                                            </Link>
                                                         </DataTableRow>
-
                                                         <DataTableRow>
-                                                            <span className="tb-product" style={{ flexDirection: "column", display: "flex", alignItems: "start" }}>
-
-                                                                <span className="title">{item.name}</span>
-
+                                                            <span className="tb-product" style={{ flexDirection: "column", display: "flex" }}>
+                                                                <span className="title">{item.title}</span>
                                                             </span>
                                                         </DataTableRow>
                                                         <DataTableRow>
-                                                            <span className="tb-product" style={{ flexDirection: "column", display: "flex", alignItems: "start" }}>
-
-                                                                <span className="title">{item.to}</span>
-
+                                                            <span className="tb-product" style={{ flexDirection: "column", display: "flex" }}>
+                                                                <span className="title">{item.customer_name}</span>
                                                             </span>
                                                         </DataTableRow>
                                                         <DataTableRow size="md">
-                                                            <span className="tb-sub">{item.price}</span>
+                                                            <span className="tb-sub">{item.total}</span>
                                                         </DataTableRow>
                                                         <DataTableRow size="md">
-                                                            <span className="tb-sub">{item.date}</span>
+                                                            <span className="tb-sub">{item.offer_date}</span>
                                                         </DataTableRow>
                                                         <DataTableRow size="md">
-                                                            <span className="tb-sub">{item.validity}</span>
+                                                            <span className="tb-sub">{item.valid_until}</span>
                                                         </DataTableRow>
                                                         <DataTableRow size="md">
-                                                            <span className="badge bg-outline-secondary">{item.ticket}</span>
+                                                            {item.tags.map((tag, id) => (
+                                                                <span key={id} className="badge text-center bg-outline-secondary">{tag}</span>
+                                                            ))}
+
                                                         </DataTableRow>
                                                         <DataTableRow size="md">
-                                                            <span className="tb-sub">{item.creation}</span>
+                                                            <span className="tb-sub">{item.created_at}</span>
                                                         </DataTableRow>
                                                         <DataTableRow size="md">
                                                             <span className="badge bg-outline-secondary">{item.status}</span>
                                                         </DataTableRow>
                                                         <DataTableRow size="md">
 
-                                                            <span style={{ paddingLeft: "5px" }} className="tb-sub">{item.representative.name}</span>
+                                                            <span style={{ paddingLeft: "5px" }} className="tb-sub">{item.created_by}</span>
                                                         </DataTableRow>
 
                                                         <DataTableRow className="nk-tb-col-tools">
@@ -497,7 +595,7 @@ const OfferListPage = () => {
                                                                                         href="#remove"
                                                                                         onClick={(ev) => {
                                                                                             ev.preventDefault();
-                                                                                            deleteProduct(item.id);
+                                                                                            deleteOffer(item.id);
                                                                                         }}
                                                                                     >
                                                                                         <Icon name="trash"></Icon>
@@ -535,328 +633,388 @@ const OfferListPage = () => {
                     </DataTable>
                 </Block>
 
+                <Modal isOpen={view.edit} toggle={() => onFormCancel()} className="modal-dialog-centered" size="lg">
+                    <ModalBody>
+                        <a href="#cancel" className="close">
+                            {" "}
+                            <Icon
+                                name="cross-sm"
+                                onClick={(ev) => {
+                                    ev.preventDefault();
+                                    onFormCancel();
+                                }}
+                            ></Icon>
+                        </a>
+                        <div className="p-2">
+                            <h5 className="title">Teklifi Düzenle</h5>
+                            <div className="mt-4">
+                                <form noValidate onSubmit={handleSubmit(onEditSubmit)}>
+                                    <Row className="g-3">
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="title">
+                                                    Başlık
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="title"
+                                                        type="text"
+                                                        className="form-control"
+                                                        {...register('title', {
+                                                            required: "Lütfen alanları boş bırakmayınız",
+                                                        })}
+                                                        value={formData.title}
+                                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
+                                                    {errors.title && <span className="invalid">{errors.title.message}</span>}
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="discount">
+                                                    İndirim
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="discount"
+                                                        type="text"
+                                                        className="form-control"
 
-                <SimpleBar
-                    className={`nk-add-product toggle-slide toggle-slide-right toggle-screen-any ${view.add ? "content-active" : ""
-                        }`}
-                >
-                    <BlockHead>
-                        <BlockHeadContent>
-                            <BlockTitle tag="h5">Yeni Kişi Ekle</BlockTitle>
-                            <BlockDes>
-                                <p>Teklif Listenize Yeni Teklif Ekleyin</p>
-                            </BlockDes>
-                        </BlockHeadContent>
-                    </BlockHead>
-                    <Block>
-                        <form onSubmit={handleSubmit(onFormSubmit)}>
-                            <Row className="g-3">
-                                <Col size="6">
-                                    <div className="form-group">
+                                                        value={formData.discount}
+                                                        onChange={(e) => setFormData({ ...formData, discount: e.target.value })} />
 
-                                        <div className="form-control-wrap">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                {...register('name', {
-                                                    required: "Lütfen boş bırakılan alanları doldurunuz.",
-                                                })}
-                                                placeholder="Ad"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                            {errors.name && <span className="invalid">{errors.name.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="total">
+                                                    Toplam
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="total"
+                                                        type="text"
+                                                        className="form-control"
 
-                                        <div className="form-control-wrap">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                {...register('name', {
-                                                    required: "Lütfen boş bıraklın alanları doldurunuz.",
-                                                })}
-                                                placeholder="Soyadı"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                            {errors.name && <span className="invalid">{errors.name.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
+                                                        value={formData.total}
+                                                        onChange={(e) => setFormData({ ...formData, total: e.target.value })} />
 
-                                        <div className="form-control-wrap">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                {...register('name', {
-                                                    required: "Lütfen boş bıraklın alanları doldurunuz.",
-                                                })}
-                                                placeholder="Ünvan"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                            {errors.name && <span className="invalid">{errors.name.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="offer_date">
+                                                    Tarih
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="offer_date"
+                                                        type="text"
+                                                        className="form-control"
 
-                                        <div className="form-control-wrap">
-                                            <RSelect
-                                                name="category"
-                                                isMulti
+                                                        value={formData.offer_date}
+                                                        onChange={(e) => setFormData({ ...formData, offer_date: e.target.value })} />
 
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="valid_until">
+                                                    Geçerlilik Tarihi
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="valid_until"
+                                                        type="text"
+                                                        className="form-control"
 
+                                                        value={formData.valid_until}
+                                                        onChange={(e) => setFormData({ ...formData, valid_until: e.target.value })} />
 
-                                                placeholder="Firma"
-                                            //ref={register({ required: "This is required" })}
-                                            />
-                                            {errors.category && <span className="invalid">{errors.category.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="tags">
+                                                    Etiket
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="tags"
+                                                        type="text"
+                                                        className="form-control"
 
-                                <Col size="12">
-                                    <div className="form-group">
+                                                        value={formData.tags}
+                                                        onChange={(e) => setFormData({ ...formData, tags: e.target.value })} />
 
-                                        <div className="form-control-wrap">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                {...register('name', {
-                                                    required: "Lütfen boş bıraklın alanları doldurunuz.",
-                                                })}
-                                                placeholder="Email"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                            {errors.name && <span className="invalid">{errors.name.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="status">
+                                                    Durum
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="status"
+                                                        type="text"
+                                                        className="form-control"
 
-                                        <div className="form-control-wrap">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                {...register('name', {
-                                                    required: "Lütfen boş bıraklın alanları doldurunuz.",
-                                                })}
-                                                placeholder="Telefon No 1"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                            {errors.name && <span className="invalid">{errors.name.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
+                                                        value={formData.status}
+                                                        onChange={(e) => setFormData({ ...formData, status: e.target.value })} />
 
-                                        <div className="form-control-wrap">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                {...register('name', {
-                                                    required: "Lütfen boş bıraklın alanları doldurunuz.",
-                                                })}
-                                                placeholder="Telefon No 2"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                            {errors.name && <span className="invalid">{errors.name.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="created_by">
+                                                    Oluşturan
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="created_by"
+                                                        type="text"
+                                                        className="form-control"
 
-                                        <div className="form-control-wrap">
-                                            <DatePicker
-                                                selected={startDate}
-                                                onChange={(date) => setStartDate(date)}
-                                                className="form-control"
-                                                placeholderText="Doğum Tarihi"
-                                            />
-                                        </div>
-                                    </div>
-                                </Col>
-                                <BlockDes>
-                                    <p>Kategorilendirme</p>
-                                </BlockDes>
-                                <Col size="6">
-                                    <div className="form-group">
+                                                        value={formData.created_by}
+                                                        onChange={(e) => setFormData({ ...formData, created_by: e.target.value })} />
 
-                                        <div className="form-control-wrap">
-                                            <RSelect
-                                                name="category"
-                                                isMulti
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="country">
+                                                    Ülke
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="country"
+                                                        type="text"
+                                                        className="form-control"
 
+                                                        value={formData.country}
+                                                        onChange={(e) => setFormData({ ...formData, country: e.target.value })} />
 
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="city">
+                                                    Şehir
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="city"
+                                                        type="text"
+                                                        className="form-control"
 
-                                                placeholder="Temsilci"
-                                            //ref={register({ required: "This is required" })}
-                                            />
-                                            {errors.category && <span className="invalid">{errors.category.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
+                                                        value={formData.city}
+                                                        onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
 
-                                        <div className="form-control-wrap">
-                                            <RSelect
-                                                name="category"
-                                                isMulti
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="district">
+                                                    İlçe
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="district"
+                                                        type="text"
+                                                        className="form-control"
 
+                                                        value={formData.district}
+                                                        onChange={(e) => setFormData({ ...formData, district: e.target.value })} />
 
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="postal_code">
+                                                    Posta Kodu
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="postal_code"
+                                                        type="text"
+                                                        className="form-control"
 
-                                                placeholder="Kategori"
-                                            //ref={register({ required: "This is required" })}
-                                            />
-                                            {errors.category && <span className="invalid">{errors.category.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
+                                                        value={formData.postal_code}
+                                                        onChange={(e) => setFormData({ ...formData, postal_code: e.target.value })} />
 
-                                        <div className="form-control-wrap">
-                                            <RSelect
-                                                name="category"
-                                                isMulti
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="address">
+                                                    Adres
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="address"
+                                                        type="text"
+                                                        className="form-control"
 
+                                                        value={formData.address}
+                                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
 
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="telefon1">
+                                                    Telefon
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="telefon1"
+                                                        type="text"
+                                                        className="form-control"
 
-                                                placeholder="Etiket"
-                                            //ref={register({ required: "This is required" })}
-                                            />
-                                            {errors.category && <span className="invalid">{errors.category.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="12">
-                                    <div className="form-group">
+                                                        value={formData.phone}
+                                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
 
-                                        <div className="form-control-wrap">
-                                            <textarea
-                                                type="text"
-                                                className="form-control"
-                                                {...register('name', {
-                                                    required: "Lütfen boş bıraklın alanları doldurunuz.",
-                                                })}
-                                                placeholder="Notlar"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                            {errors.name && <span className="invalid">{errors.name.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <BlockDes>
-                                    <p>Adres Bilgileri</p>
-                                </BlockDes>
-                                <Col size="12">
-                                    <div className="form-group">
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col lg="4">
+                                            <div className="form-group">
+                                                <label className="form-label text-soft" htmlFor="mail1">
+                                                    Email
+                                                </label>
+                                                <div className="form-control-wrap">
+                                                    <input
+                                                        id="mail1"
+                                                        type="text"
+                                                        className="form-control"
 
-                                        <div className="form-control-wrap">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                {...register('name', {
-                                                    required: "Lütfen boş bıraklın alanları doldurunuz.",
-                                                })}
-                                                placeholder="Adres"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                            {errors.name && <span className="invalid">{errors.name.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
+                                                        value={formData.email}
+                                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
 
-                                        <div className="form-control-wrap">
-                                            <RSelect
-                                                name="category"
-                                                isMulti
-                                                placeholder="Şehir"
-                                            //ref={register({ required: "This is required" })}
-                                            />
-                                            {errors.category && <span className="invalid">{errors.category.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
-
-                                        <div className="form-control-wrap">
-                                            <RSelect
-                                                name="category"
-                                                isMulti
-                                                placeholder="İlçe"
-                                            //ref={register({ required: "This is required" })}
-                                            />
-                                            {errors.category && <span className="invalid">{errors.category.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-                                <Col size="6">
-                                    <div className="form-group">
-
-                                        <div className="form-control-wrap">
-                                            <RSelect
-                                                name="category"
-                                                isMulti
-                                                placeholder="Ülke"
-                                            //ref={register({ required: "This is required" })}
-                                            />
-                                            {errors.category && <span className="invalid">{errors.category.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-
-                                <Col md="6">
-                                    <div className="form-group">
-
-                                        <div className="form-control-wrap">
-                                            <input
-                                                type="text"
-                                                className="form-control"
-                                                {...register('name', {
-                                                    required: "Lütfen boş bıraklın alanları doldurunuz.",
-                                                })}
-                                                placeholder="Posta Kodu"
-
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
-                                            {errors.name && <span className="invalid">{errors.name.message}</span>}
-                                        </div>
-                                    </div>
-                                </Col>
-
-
-
-
-                                <Col size="12">
-                                    <div className="flex justify-end">
-                                        <ButtonGroup>
-                                            <Button type="button" onClick={() => setView({ ...view, add: false })} className="btn btn-outline-primary">
-
-                                                <span>Vazgeç</span>
-                                            </Button>
+                                                </div>
+                                            </div>
+                                        </Col>
+                                        <Col size="12">
                                             <Button color="primary" type="submit">
 
-                                                <span>Kaydet</span>
+                                                <span>Teklifi Güncelle</span>
                                             </Button>
-                                        </ButtonGroup>
-                                    </div>
+                                        </Col>
+                                    </Row>
+                                </form>
+                            </div>
+                        </div>
+                    </ModalBody>
+                </Modal>
+
+                <Modal isOpen={view.details} toggle={() => onFormCancel()} className="modal-dialog-centered" size="lg">
+                    <ModalBody>
+                        <a href="#cancel" className="close">
+                            {" "}
+                            <Icon
+                                name="cross-sm"
+                                onClick={(ev) => {
+                                    ev.preventDefault();
+                                    onFormCancel();
+                                }}
+                            ></Icon>
+                        </a>
+                        <div className="nk-modal-head">
+                            <h4 className="nk-modal-title title">
+                                Teklif Bilgileri <small className="text-primary"></small>
+                            </h4>
+
+                        </div>
+                        <div className="nk-tnx-details mt-sm-3">
+                            <Row className="gy-3">
+                                <Col lg={4}>
+                                    <span className="sub-text">Başlık</span>
+                                    <span className="caption-text">{formData.title}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">İndirim</span>
+                                    <span className="caption-text">{formData.discount}%</span>
+                                </Col>
+
+                                <Col lg={4}>
+                                    <span className="sub-text">Toplam</span>
+                                    <span className="caption-text">{formData.total}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Tarih</span>
+                                    <span className="caption-text">{formData.offer_date}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Geçerlilik Tarihi</span>
+                                    <span className="caption-text">{formData.valid_until}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Etiket</span>
+                                    {formData.tags.map((tag, id) => (
+                                        <span key={id} className="caption-text"></span>
+                                    ))}
+
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Oluşturulma</span>
+                                    <span className="caption-text">{formData.created_at}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Durum</span>
+                                    <span className="caption-text">{formData.status}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Oluşturan</span>
+                                    <span className="caption-text">{formData.created_by}</span>
+                                </Col>
+
+                                <Col lg={4}>
+                                    <span className="sub-text">Ülke</span>
+                                    <span className="caption-text">{formData.country}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Şehir</span>
+                                    <span className="caption-text">{formData.city}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">İlçe</span>
+                                    <span className="caption-text">{formData.district}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Posta Kodu</span>
+                                    <span className="caption-text">{formData.postal_code}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Adres</span>
+                                    <span className="caption-text">{formData.address}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Telefon</span>
+                                    <span className="caption-text">{formData.phone}</span>
+                                </Col>
+                                <Col lg={4}>
+                                    <span className="sub-text">Email</span>
+                                    <span className="caption-text">{formData.email}</span>
                                 </Col>
                             </Row>
-                        </form>
-                    </Block>
-                </SimpleBar>
+                        </div>
+                    </ModalBody>
+                </Modal>
+
+
 
                 {view.add && <div className="toggle-overlay" onClick={toggle}></div>}
             </Content>

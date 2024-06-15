@@ -1,10 +1,13 @@
 import React, { useLayoutEffect } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { ProductContextProvider } from "../pages/pre-built/products/ProductContext";
-import { UserContextProvider } from "../pages/pre-built/user-manage/UserContext";
+import { PersonContextProvider } from "../pages/pre-built/user-manage/PersonContext";
 
 import Homepage from "../pages/Homepage";
 import OfferListPage from "../pages/pre-built/offers/offersList";
+import OfferDetailPage from "../pages/pre-built/offers/offerDetail";
+import CompanyDetail from "../pages/pre-built/company/CompanyDetail"
+
 import SalesListPage from "../pages/pre-built/sales/salesList";
 import NewOffersPage from "../pages/pre-built/offers/newOffersPage";
 import NewSalesPage from "../pages/pre-built/sales/newSalesPage";
@@ -142,6 +145,9 @@ const Router = () => {
         <Route index element={<Homepage />}></Route>
         <Route path="firmalar" element={<CompanyList />}></Route>
         <Route path="teklifler" element={<OfferListPage />}></Route>
+        <Route path="teklif-detay/:teklifId" element={<OfferDetailPage />}></Route>
+
+
         <Route path="satislar" element={<SalesListPage />}></Route>
         <Route path="kullanicilar" element={<NewUserPage />}></Route>
 
@@ -154,13 +160,15 @@ const Router = () => {
         <Route path="project-list" element={<ProjectListPage />}></Route>
 
 
-        <Route element={<UserContextProvider />} >
+        <Route element={<PersonContextProvider />} >
           <Route path="kisiler" element={<UserListRegular />}></Route>
           <Route path="teklif-olustur" element={<NewOffersPage />}></Route>
           <Route path="satis-olustur" element={<NewSalesPage />}></Route>
           <Route path="user-list-compact" element={<UserListCompact />}></Route>
           <Route path="user-contact-card" element={<UserContactCard />}></Route>
-          <Route path="user-details-regular/:userId" element={<UserDetails />}></Route>
+          <Route path="kisi-detay/:userId" element={<UserDetails />}></Route>
+          <Route path="sirket-detay/:companyId" element={<CompanyDetail />}></Route>
+
         </Route>
 
         <Route >

@@ -24,11 +24,11 @@ import {
 import { Link } from "react-router-dom";
 import { userData } from "./UserData";
 import { findUpper } from "../../../utils/Utils";
-import { UserContext } from "./UserContext";
+import { PersonContext } from "./PersonContext";
 import CardFormModal from "./CardFormModal";
 
 const UserContactCardPage = () => {
-  const { contextData } = useContext(UserContext);
+  const { contextData } = useContext(PersonContext);
   const [data, setData] = contextData;
 
   const [editId, setEditedId] = useState();
@@ -194,18 +194,16 @@ const UserContactCardPage = () => {
                 <PreviewAltCard>
                   <div className="team">
                     <div
-                      className={`team-status ${
-                        item.status === "Active"
-                          ? "bg-success text-white"
-                          : item.status === "Pending"
+                      className={`team-status ${item.status === "Active"
+                        ? "bg-success text-white"
+                        : item.status === "Pending"
                           ? "bg-warning text-white"
                           : "bg-danger text-white"
-                      } `}
+                        } `}
                     >
                       <Icon
-                        name={`${
-                          item.status === "Active" ? "check-thick" : item.status === "Pending" ? "clock" : "na"
-                        }`}
+                        name={`${item.status === "Active" ? "check-thick" : item.status === "Pending" ? "clock" : "na"
+                          }`}
                       ></Icon>
                     </div>
                     <div className="team-options">
@@ -381,10 +379,10 @@ const UserContactCardPage = () => {
           })}
         </Row>
       </Block>
-        
+
       <CardFormModal modal={modal.add} modalType="add" formData={formData} setFormData={setFormData} closeModal={closeModal} onSubmit={onFormSubmit} />
       <CardFormModal modal={modal.edit} modalType="edit" formData={editFormData} setFormData={setEditFormData} closeModal={closeEditModal} onSubmit={onEditSubmit} />
-      
+
     </Content>
   </>;
 };

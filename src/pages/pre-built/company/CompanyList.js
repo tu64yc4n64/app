@@ -32,44 +32,148 @@ import {
 import axios from "axios";
 
 
-const BASE_URL = "http://localhost:3000/"
+const BASE_URL = "https://tiosone.com/customers/api/"
 
 const CompanyList = () => {
-
+    const [data, setData] = useState([]);
+    console.log(data)
 
     const getAllCategories = async () => {
+        let accessToken = localStorage.getItem('accessToken');
+
         try {
-            const response = await axios.get(BASE_URL + "categories?type=company");
+            const response = await axios.get(BASE_URL + "categories?type=company", {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
             setCategories(response.data);
         } catch (error) {
-            console.error("There was an error fetching the data!", error);
+            if (error.response && error.response.status === 401) {
+                accessToken = await refreshAccessToken();
+                if (accessToken) {
+                    try {
+                        const response = await axios.get(BASE_URL + "categories?type=company", {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+                            }
+                        });
+                        setCategories(response.data);
+                    } catch (retryError) {
+                        console.error("Retry error after refreshing token", retryError);
+                    }
+                }
+            } else {
+                console.error("There was an error fetching the data!", error);
+            }
         }
     };
+
     const getAllTags = async () => {
+        let accessToken = localStorage.getItem('accessToken');
+
         try {
-            const response = await axios.get(BASE_URL + "tags?type=company");
+            const response = await axios.get(BASE_URL + "tags?type=company", {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
             setTags(response.data);
         } catch (error) {
-            console.error("There was an error fetching the data!", error);
+            if (error.response && error.response.status === 401) {
+                accessToken = await refreshAccessToken();
+                if (accessToken) {
+                    try {
+                        const response = await axios.get(BASE_URL + "tags?type=company", {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+                            }
+                        });
+                        setTags(response.data);
+                    } catch (retryError) {
+                        console.error("Retry error after refreshing token", retryError);
+                    }
+                }
+            } else {
+                console.error("There was an error fetching the data!", error);
+            }
         }
     };
 
+    const refreshAccessToken = async () => {
+        const refreshToken = localStorage.getItem('refreshToken');
 
 
+        if (!refreshToken) {
+            console.error('No refresh token found in local storage.');
+            return null;
+        }
 
-    const [data, setData] = useState([]);
-
-    const getAllUsers = async () => {
         try {
-            const response = await axios.get(BASE_URL + "companies");
-            setData(response.data);
-            setOriginalData(response.data)
+            const response = await axios.post("https://tiosone.com/api/token/refresh/", {
+                refresh: refreshToken
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            const newAccessToken = response.data.access;
+            localStorage.setItem('accessToken', newAccessToken);
+            return newAccessToken;
         } catch (error) {
-            console.error("There was an error fetching the data!", error);
+            if (error.response && error.response.status === 401) {
+                console.error("Refresh token is invalid or expired. User needs to re-login.");
+                window.location.href = '/auth-login';
+            } else {
+                console.error("Error refreshing access token", error);
+            }
+            return null;
+        }
+    };
+
+    const getAllCompanies = async () => {
+        let accessToken = localStorage.getItem('accessToken');
+
+
+        try {
+            const response = await axios.get(BASE_URL + "companies/", {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
+            setData(response.data);
+            setOriginalData(response.data);
+        } catch (error) {
+            if (error.response && error.response.status === 401) {
+
+                accessToken = await refreshAccessToken();
+                if (accessToken) {
+
+                    try {
+                        const response = await axios.get(BASE_URL + "companies/", {
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${accessToken}`
+                            }
+                        });
+                        setData(response.data);
+                        setOriginalData(response.data);
+                    } catch (retryError) {
+                        console.error("Retry error after refreshing token", retryError);
+                    }
+                }
+            } else {
+                console.error("There was an error fetching the data!", error);
+            }
         }
     };
     useEffect(() => {
-        getAllUsers()
+        getAllCompanies()
 
     }, [])
     const [categories, setCategories] = useState([]);
@@ -189,41 +293,49 @@ const CompanyList = () => {
 
 
     const onFormSubmit = async (form) => {
+        let accessToken = localStorage.getItem('accessToken');
         const { name, industry, size, tax_number, tax_office, email, phone, address_line } = form;
 
         let submittedData = {
             name: name,
             industry: industry,
             size: size,
-            categories: selectedCategory,
-            tags: selectedTag,
-            tax_number: tax_number,
-            tax_office: tax_office,
-            country: "Türkiye",
-            city: "Denizli",
-            district: "Pamukkale",
-            address_line: address_line,
-            phone: phone,
+            //  categories: [],
+            //  tags: [],
+            // added_by: "admin",
+            //  updated_by: "admin64",
+            //  tax_number: tax_number,
+            //  tax_office: tax_office,
+            // country: "Türkiye",
+            //  city: "Denizli",
+            //  district: "Pamukkale",
+            //  address_line: address_line,
+            //  phone: phone,
             email: email,
-            website: "http://johndoe.com",
-            is_active: true,
-            customer_representatives: [1]
+            //  website: "http://johndoe.com",
+            // is_active: true,
+            // customer_representatives: [1]
         };
 
 
         try {
-            const response = await axios.post(BASE_URL + "companies", submittedData);
+            const response = await axios.post(BASE_URL + "companies/", submittedData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
             setData([response.data, ...data]);
             setView({ open: false });
 
-
             resetForm();
         } catch (error) {
-            console.error("There was an error posting the data!", error);
+            console.error("An error occurred:", error);
         }
     };
 
     const onEditSubmit = async () => {
+        let accessToken = localStorage.getItem('accessToken');
         let submittedData;
         let newItems = data;
         let index = newItems.findIndex((item) => item.id === editId);
@@ -234,26 +346,32 @@ const CompanyList = () => {
                     name: formData.name,
                     industry: formData.industry,
                     size: formData.size,
-                    categories: formData.categories,
-                    tags: formData.tags,
-                    tax_number: formData.tax_number,
-                    tax_office: formData.tax_office,
-                    country: formData.country,
-                    city: formData.city,
-                    district: formData.district,
-                    address_line: formData.address_line,
-                    phone: formData.phone,
+                    // categories: formData.categories,
+                    //  tags: formData.tags,
+                    //  tax_number: formData.tax_number,
+                    //  tax_office: formData.tax_office,
+                    // country: formData.country,
+                    // city: formData.city,
+                    //  district: formData.district,
+                    //  address_line: formData.address_line,
+                    //  phone: formData.phone,
                     email: formData.email,
-                    website: formData.website,
-                    is_active: formData.is_active,
-                    customer_representatives: formData.customer_representatives,
+                    //  website: formData.website,
+                    // is_active: formData.is_active,
+                    // customer_representatives: formData.customer_representatives,
                 };
             }
         });
 
         try {
-            const response = await axios.put(BASE_URL + "companies/" + editId, submittedData);
+            const response = await axios.put(`${BASE_URL}companies/${editId}`, submittedData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                }
+            });
 
+            // Veritabanı güncelleme başarılı olursa yerel veriyi güncelle
             newItems[index] = response.data;
             setData(newItems);
             resetForm();
@@ -318,12 +436,19 @@ const CompanyList = () => {
 
     // function to delete a product
     const deleteProduct = async (id) => {
+        let accessToken = localStorage.getItem('accessToken');
+
         try {
-            await axios.delete(`${BASE_URL}companies/${id}`);
-            let defaultData = data.filter((item) => item.id !== id);
-            setData([...defaultData]);
+            await axios.delete(`${BASE_URL}companies/${id}`, {
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            let updatedData = data.filter((item) => item.id !== id);
+            setData([...updatedData]);
         } catch (error) {
-            console.error("There was an error deleting the data!", error);
+            console.error("There was an error deleting the product!", error);
         }
     };
 
@@ -387,7 +512,7 @@ const CompanyList = () => {
                                                     toggle("add");
                                                 }}
                                             >
-                                                Yeni Kişi Ekle
+                                                Yeni Firma Ekle
                                             </Button>
                                             <Button
                                                 className="toggle d-none d-md-inline-flex"
@@ -397,7 +522,7 @@ const CompanyList = () => {
                                                 }}
                                             >
 
-                                                <span>Yeni Kişi Ekle</span>
+                                                <span>Yeni Firma Ekle</span>
                                             </Button>
                                         </li>
                                     </ul>
@@ -418,7 +543,7 @@ const CompanyList = () => {
                                 type="text"
                                 className="form-control"
                                 id="default-04"
-                                placeholder="Kişilerde ara..."
+                                placeholder="Firmalarda ara..."
                                 onChange={(e) => onFilterChange(e)}
                             />
                         </div>
@@ -523,7 +648,7 @@ const CompanyList = () => {
                                                             </div>
                                                         </DataTableRow>
                                                         <DataTableRow>
-                                                            <Link to={`${process.env.PUBLIC_URL}/user-details-regular/${item.id}`}>
+                                                            <Link to={`${process.env.PUBLIC_URL}/sirket-detay/${item.id}`}>
                                                                 <span className="tb-product" style={{ flexDirection: "column", display: "flex", alignItems: "start" }}>
 
                                                                     <span className="title">{item.name}</span>
@@ -662,17 +787,18 @@ const CompanyList = () => {
                             ></Icon>
                         </a>
                         <div className="p-2">
-                            <h5 className="title">Update Product</h5>
+                            <h5 className="title">Firmayı Düzenle</h5>
                             <div className="mt-4">
                                 <form noValidate onSubmit={handleSubmit(onEditSubmit)}>
                                     <Row className="g-3">
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="sirket1">
                                                     Şirket Adı
                                                 </label>
                                                 <div className="form-control-wrap">
                                                     <input
+                                                        id="sirket1"
                                                         type="text"
                                                         className="form-control"
                                                         {...register('name', {
@@ -687,7 +813,7 @@ const CompanyList = () => {
 
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     Endüstri
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -703,7 +829,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     Büyüklük
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -721,7 +847,7 @@ const CompanyList = () => {
 
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="category">
+                                                <label className="form-label text-soft" htmlFor="category">
                                                     Kategori
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -736,7 +862,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="category">
+                                                <label className="form-label text-soft" htmlFor="category">
                                                     Etiketler
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -751,7 +877,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     Vergi Numarası
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -767,7 +893,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     Vergi Dairesi
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -783,7 +909,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     Ülke
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -799,7 +925,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     Şehir
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -815,7 +941,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     İlçe
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -831,7 +957,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     Adres
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -847,7 +973,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     Telefon
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -863,7 +989,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     Email
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -879,7 +1005,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="regular-price">
+                                                <label className="form-label text-soft" htmlFor="regular-price">
                                                     Website
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -895,7 +1021,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="category">
+                                                <label className="form-label text-soft" htmlFor="category">
                                                     Durum
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -911,7 +1037,7 @@ const CompanyList = () => {
                                         </Col>
                                         <Col lg="4">
                                             <div className="form-group">
-                                                <label className="form-label" htmlFor="category">
+                                                <label className="form-label text-soft" htmlFor="category">
                                                     Temsilci
                                                 </label>
                                                 <div className="form-control-wrap">
@@ -950,7 +1076,7 @@ const CompanyList = () => {
                         </a>
                         <div className="nk-modal-head">
                             <h4 className="nk-modal-title title">
-                                Kişi Bilgileri <small className="text-primary"></small>
+                                Firma Bilgileri <small className="text-primary"></small>
                             </h4>
 
                         </div>
@@ -1064,9 +1190,13 @@ const CompanyList = () => {
                             <Row className="g-3">
                                 <Col size="6">
                                     <div className="form-group">
+                                        <label className="form-label text-soft" htmlFor="sirketadi">
+                                            Şirket Adı
+                                        </label>
 
                                         <div className="form-control-wrap">
                                             <input
+                                                id="sirketadi"
                                                 type="text"
                                                 className="form-control"
                                                 {...register('name', {
@@ -1081,11 +1211,15 @@ const CompanyList = () => {
                                 </Col>
                                 <Col size="6">
                                     <div className="form-group">
+                                        <label className="form-label text-soft" htmlFor="endustri">
+                                            Endüstri
+                                        </label>
 
                                         <div className="form-control-wrap">
                                             <input
                                                 type="text"
                                                 className="form-control"
+                                                id="endustri"
 
                                                 placeholder="Endüstri"
                                                 value={formData.industry}
@@ -1096,12 +1230,16 @@ const CompanyList = () => {
                                 </Col>
                                 <Col size="6">
                                     <div className="form-group">
+                                        <label className="form-label text-soft" htmlFor="buyukluk">
+                                            Büyüklüğü
+                                        </label>
 
                                         <div className="form-control-wrap">
                                             <input
                                                 type="text"
                                                 className="form-control"
                                                 placeholder="Büyüklüğü"
+                                                id="buyukluk"
                                                 value={formData.size}
                                                 onChange={(e) => setFormData({ ...formData, size: e.target.value })} />
 
@@ -1112,11 +1250,15 @@ const CompanyList = () => {
                                 <Col size="6">
                                     <div className="form-group">
                                         <div className="form-control-wrap">
+                                            <label className="form-label text-soft" htmlFor="mail">
+                                                Email
+                                            </label>
                                             <input
                                                 type="text"
                                                 className="form-control"
 
                                                 placeholder="Email"
+                                                id="mail"
                                                 value={formData.email}
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
 
@@ -1127,7 +1269,11 @@ const CompanyList = () => {
                                     <div className="form-group">
 
                                         <div className="form-control-wrap">
+                                            <label className="form-label text-soft" htmlFor="telefon">
+                                                Telefon No
+                                            </label>
                                             <input
+                                                id="telefon"
                                                 type="text"
                                                 className="form-control"
 
@@ -1141,11 +1287,15 @@ const CompanyList = () => {
 
                                 <Col size="6">
                                     <div className="form-group">
+                                        <label className="form-label text-soft" htmlFor="website">
+                                            Website
+                                        </label>
 
                                         <div className="form-control-wrap">
                                             <input
                                                 type="text"
                                                 className="form-control"
+                                                id="website"
 
                                                 placeholder="Website"
 
@@ -1156,9 +1306,13 @@ const CompanyList = () => {
                                 </Col>
                                 <Col size="6">
                                     <div className="form-group">
+                                        <label className="form-label text-soft" htmlFor="vergi">
+                                            Vergi Numarası
+                                        </label>
 
                                         <div className="form-control-wrap">
                                             <input
+                                                id="vergi"
                                                 type="text"
                                                 className="form-control"
 
@@ -1171,11 +1325,15 @@ const CompanyList = () => {
                                 </Col>
                                 <Col size="6">
                                     <div className="form-group">
+                                        <label className="form-label text-soft" htmlFor="vergiDaire">
+                                            Vergi Daire
+                                        </label>
 
                                         <div className="form-control-wrap">
                                             <input
                                                 type="text"
                                                 className="form-control"
+                                                id="vergiDaire"
 
                                                 placeholder="Vergi Daire"
 
@@ -1185,7 +1343,10 @@ const CompanyList = () => {
                                     </div>
                                 </Col>
                                 <BlockDes>
-                                    <p>Kategorilendirme</p>
+                                    <h6 className="mt-3">
+
+                                        Kategorilendirme
+                                    </h6>
                                 </BlockDes>
 
                                 <Col size="6">
@@ -1234,16 +1395,22 @@ const CompanyList = () => {
                                     </div>
                                 </Col>
                                 <BlockDes>
-                                    <p>Adres Bilgileri</p>
+                                    <h6 className="mt-3">
+
+                                        Adres Bilgileri
+                                    </h6>
                                 </BlockDes>
                                 <Col size="12">
                                     <div className="form-group">
+                                        <label className="form-label text-soft" htmlFor="adres">
+                                            Adres
+                                        </label>
 
                                         <div className="form-control-wrap">
                                             <input
                                                 type="text"
                                                 className="form-control"
-
+                                                id="adres"
                                                 placeholder="Adres"
                                                 value={formData.address_line}
                                                 onChange={(e) => setFormData({ ...formData, address_line: e.target.value })} />
@@ -1295,15 +1462,15 @@ const CompanyList = () => {
                                 </Col>
                                 <Col size="12">
                                     <div className="flex justify-end">
-                                        <ButtonGroup>
-                                            <Button type="button" onClick={() => onFormCancel()} className="btn btn-outline-primary">
 
-                                                <span>Vazgeç</span>
-                                            </Button>
-                                            <Button color="primary" type="submit">
-                                                <span>Kaydet</span>
-                                            </Button>
-                                        </ButtonGroup>
+                                        <Button type="button" onClick={() => onFormCancel()} className="btn btn-outline-primary me-2">
+
+                                            <span>Vazgeç</span>
+                                        </Button>
+                                        <Button color="primary" type="submit">
+                                            <span>Kaydet</span>
+                                        </Button>
+
                                     </div>
                                 </Col>
                             </Row>
